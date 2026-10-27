@@ -28,7 +28,7 @@ jobs:
             SDL3-devel SDL3_image-devel SDL3_ttf-devel SDL3_mixer-devel
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Generate autotools files
         run: ./autogen.sh
@@ -53,7 +53,7 @@ jobs:
             mingw32-cross-gcc mingw32-cross-binutils mingw32-headers
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Compile
         run: |

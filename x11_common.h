@@ -29,7 +29,14 @@
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
-#include <X11/Intrinsic.h>
+
+#if !defined(TRUE)
+#define TRUE 1
+#endif
+
+#if !defined(FALSE)
+#define FALSE 0
+#endif
 
 #include <unistd.h>
 #include <arpa/inet.h>
