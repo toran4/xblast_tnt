@@ -1,7 +1,5 @@
 /*
- * file x11_sound.c - sound via xbsndsrv or bell
- *
- * $Id: sdl_sound.c,v 1.9 2006/06/13 11:19:18 fzago Exp $
+ * file sdl_sound.c - sound via SDL3_mixer or bell
  *
  * Program XBLAST 
  * (C) by Oliver Vogel (e-mail: m.vogel@ndh.net)
@@ -23,7 +21,7 @@
 
 #include "xblast.h"
 
-#include "SDL_mixer.h"
+#include <SDL3_mixer/SDL_mixer.h>
 
 /*
  * local constants
@@ -157,31 +155,35 @@ static struct _sound_name
 	{
 	SND_SNG6, "xbsng6.raw", NULL, 0, XBTrue, XBFalse},	/* Backgr. song #6 */
 	{
-	SND_MAX, NULL, NULL, 0}
+	SND_MAX, NULL, NULL, 0, XBFalse, XBFalse}
 };
 
-static Mix_Chunk *sound_chunk[SND_MAX];
-static int sound_channel[SND_MAX];
-
-/* SUBSIZE small so no delay for playing...
-   maybe a better solution should be there, since it is 
-   not nice sending all and dont using the buffer.
-*/
-#define SUBSIZE          128
-
-#define SOUND_DEVICE "/dev/dsp"
-#define SAMPLE_RATE     22050
-/* SDL_Mixer doesn't allow one channel with
-left and right, so we need 2 output channels
-*/
-#define SAMPLE_CHANNELS     2
-#define SAMPLE_SIZE         AUDIO_U8
-
-static int mono_mode = XBFalse;
+/*
+ * The game can play the same sound several times at once (many bombs, all
+ * players walking, ...), so keep a pool of tracks, like the old
+ * Mix_AllocateChannels(20) did.
+ */
+#define SND_CHANNELS 20
 
 /*
  * local variables
  */
+static MIX_Mixer *mixer = NULL;
+static MIX_Audio *sound_audio[SND_MAX];
+static MIX_Track *sound_track[SND_CHANNELS];
+static SND_Id sound_owner[SND_CHANNELS];
+static unsigned sound_next = 0;
+
+/*
+ * audio format used for the mixer and for loading the raw sounds; the
+ * number of channels depends on the mono/stereo setting (see SND_Init)
+ */
+static SDL_AudioSpec rawSpec = {
+	SDL_AUDIO_U8, 2, 22050
+};
+
+static int mono_mode = XBFalse;
+
 static XBBool isActive = XBFalse;
 static XBBool boom = XBFalse;
 
@@ -217,25 +219,35 @@ SND_Init (const CFGSoundSetup * setup)
 		return XBFalse;
 	}
 
-	/* Initialize SDL_mixer stuff */
+	/* select mono or stereo output; the raw samples are converted to
+	   match this in SND_Load() */
+	mono_mode = setup->stereo ? XBFalse : XBTrue;
+	rawSpec.channels = mono_mode ? 1 : 2;
 
-	/* init audio */
-	if (Mix_OpenAudio (SAMPLE_RATE, SAMPLE_SIZE, SAMPLE_CHANNELS, SUBSIZE) != 0) {
-		fprintf (stderr, "Error: Couldn't initializate audio\n"
-				 "Possible reason: %s\n", Mix_GetError ());
+	/* Initialize SDL_mixer stuff */
+	if (!MIX_Init ()) {
+		fprintf (stderr, "Error: Couldn't initialize SDL_mixer\n"
+				 "Possible reason: %s\n", SDL_GetError ());
 		return XBFalse;
 	}
 
-	/* Add more mixing channels. The default of MIX_CHANNELS (8) is
-	 * not enough when there is many bombs. Is the new number too big
-	 * for slow machines? */
-	Mix_AllocateChannels(20);
+	mixer = MIX_CreateMixerDevice (SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &rawSpec);
+	if (NULL == mixer) {
+		fprintf (stderr, "Error: Couldn't initializate audio\n"
+				 "Possible reason: %s\n", SDL_GetError ());
+		MIX_Quit ();
+		return XBFalse;
+	}
 
 	/* reset sound stuff */
 	for (i = 0; i < SND_MAX; i++) {
-		sound_chunk[i] = NULL;
-		sound_channel[i] = -1;
+		sound_audio[i] = NULL;
 	}
+	for (i = 0; i < SND_CHANNELS; i++) {
+		sound_track[i] = MIX_CreateTrack (mixer);
+		sound_owner[i] = SND_MAX;
+	}
+	sound_next = 0;
 
 	soundInitialized = XBTrue;
 
@@ -244,20 +256,42 @@ SND_Init (const CFGSoundSetup * setup)
 }								/* SND_Init */
 
 /*
+ * stop all tracks that currently play sound id
+ */
+static void
+StopSoundTracks (SND_Id id)
+{
+	int i;
+
+	for (i = 0; i < SND_CHANNELS; i++) {
+		if (NULL == sound_track[i]) {
+			continue;
+		}
+		if (sound_owner[i] == id) {
+			MIX_StopTrack (sound_track[i], 0);
+			MIX_SetTrackAudio (sound_track[i], NULL);
+			sound_owner[i] = SND_MAX;
+		}
+	}
+}								/* StopSoundTracks */
+
+/*
  * Stop Audio
  */
 XBBool
 SND_Stop (SND_Id id)
 {
+	int i;
+
 	if (soundInitialized) {
 		if (id == STOP_ALL_SOUNDS) {
-			Mix_HaltChannel (-1);
+			MIX_StopAllTracks (mixer, 0);
+			for (i = 0; i < SND_CHANNELS; i++) {
+				sound_owner[i] = SND_MAX;
+			}
 		}
-		else					// stop specific sound
-		{
-			if (sound_channel[id] != -1)
-				Mix_HaltChannel (sound_channel[id]);
-			sound_channel[id] = -1;
+		else {					// stop specific sound
+			StopSoundTracks (id);
 		}
 	}
 	return XBTrue;
@@ -269,23 +303,53 @@ SND_Stop (SND_Id id)
 XBBool
 SND_Play (SND_Id id, int position)
 {
-	if (soundInitialized) {
+	if (soundInitialized && NULL != sound_audio[id]) {
 
 		// do a stereo effect
 		int col1 = 255 - ((position * 255) / MAX_SOUND_POSITION);
 		int col2 = (position * 255) / MAX_SOUND_POSITION;
+		MIX_StereoGains gains;
+		int slot = -1;
+		int i;
 
-		/* When there is too many bombs on the screen,
-		 * this function will fails. */
-		sound_channel[id] = Mix_PlayChannel (-1, sound_chunk[id], 0);
-		if (sound_channel[id] != -1) {
-			/* Panning must be after the channel opened,
-			 * since we dont know the channel before */
-			if (!Mix_SetPanning (sound_channel[id], col2, col1)) {
-				fprintf (stderr, "Mix_SetPanning(%d, %d, %d) failed!\n", sound_channel[id], col1, col2);
-				fprintf (stderr, "Reason: [%s].\n", Mix_GetError ());
+		if (NULL == mixer) {
+			return XBTrue;
+		}
+		/* look for a track that is free or has finished playing */
+		for (i = 0; i < SND_CHANNELS; i++) {
+			if (NULL != sound_track[i] && !MIX_TrackPlaying (sound_track[i])) {
+				slot = i;
+				break;
 			}
 		}
+		/* all tracks are busy: steal one, round robin */
+		if (slot < 0) {
+			slot = (int)sound_next;
+			sound_next = (sound_next + 1) % SND_CHANNELS;
+			if (NULL == sound_track[slot]) {
+				return XBTrue;
+			}
+			MIX_StopTrack (sound_track[slot], 0);
+		}
+
+		gains.left = (float)col2 / 255.0f;
+		gains.right = (float)col1 / 255.0f;
+
+		/* Panning must be after the audio is set, since we don't
+		 * know the track properties before */
+		if (!MIX_SetTrackAudio (sound_track[slot], sound_audio[id])) {
+			fprintf (stderr, "MIX_SetTrackAudio(%d) failed: %s\n", id, SDL_GetError ());
+			return XBTrue;
+		}
+		if (!MIX_SetTrackStereo (sound_track[slot], &gains)) {
+			fprintf (stderr, "MIX_SetTrackStereo(%d, %d, %d) failed!\n", id, col1, col2);
+			fprintf (stderr, "Reason: [%s].\n", SDL_GetError ());
+		}
+		if (!MIX_PlayTrack (sound_track[slot], 0)) {
+			fprintf (stderr, "MIX_PlayTrack(%d) failed: %s\n", id, SDL_GetError ());
+			return XBTrue;
+		}
+		sound_owner[slot] = id;
 	}
 	else {
 		/* beep at next frame */
@@ -323,6 +387,18 @@ SND_Load (SND_Id id)
 			".",
 		};
 
+		/* a previous version of this sound must be released first */
+		StopSoundTracks (id);
+		if (NULL != sound_audio[id]) {
+			MIX_DestroyAudio (sound_audio[id]);
+			sound_audio[id] = NULL;
+		}
+		if (NULL != sound_name[id].samples) {
+			free (sound_name[id].samples);
+			sound_name[id].samples = NULL;
+			sound_name[id].length = 0;
+		}
+
 		/* check environment for xblast search path */
 		path_list[0] = getenv ("XBLASTDIR");
 
@@ -339,11 +415,6 @@ SND_Load (SND_Id id)
 #endif
 					(void)fstat (f, &snd_stat);
 					sound_size = snd_stat.st_size / sizeof (uint8_t);
-					if (sound_name[id].samples != NULL) {
-						free (sound_name[id].samples);
-						sound_name[id].samples = NULL;
-						sound_name[id].length = 0;
-					}
 
 					if ((sb = malloc (sound_size * sizeof (uint8_t))) == NULL) {
 						close (f);
@@ -359,12 +430,13 @@ SND_Load (SND_Id id)
 						   same problem as the 2 channels issue
 						 */
 						if (mono_mode != XBTrue && sound_name[id].mono == XBTrue) {
+							int k;
 							if ((sb1 = malloc (2 * sound_size * sizeof (uint8_t))) == NULL) {
 								free (sb);
 								return (-1);
 							}
-							for (i = 0; i < sound_size; i++) {
-								sb1[2*i] = sb1[2*i + 1] = sb[i];
+							for (k = 0; k < sound_size; k++) {
+								sb1[2 * k] = sb1[2 * k + 1] = sb[k];
 
 							}
 							/* we free sb afterwards so we need
@@ -380,22 +452,28 @@ SND_Load (SND_Id id)
 						 */
 
 						if (mono_mode == XBTrue && sound_name[id].mono == XBFalse) {
-							int i;
+							int k;
 							uint8_t *m, *s;
 							s16 sum;
 
 							m = s = sound_name[id].samples;
 
 							sound_name[id].length >>= 1;
-							for (i = 0; i < sound_name[id].length; i++) {
+							for (k = 0; k < sound_name[id].length; k++) {
 								sum = *s + *(s + 1);
 								*m++ = sum >> 1;
 								s += 2;
 							}
 						}
-						if (!(sound_chunk[id] = Mix_QuickLoad_RAW (sb, sound_name[id].length)))
+						/* the mixer does not take ownership of the samples,
+						   they are freed in SND_Unload */
+						sound_audio[id] =
+							MIX_LoadRawAudioNoCopy (mixer, sb, sound_name[id].length,
+													&rawSpec, false);
+						if (NULL == sound_audio[id]) {
 							fprintf (stderr, "Warning: Could not open RAW from memory: %s\n",
-									 Mix_GetError ());
+									 SDL_GetError ());
+						}
 
 						break;
 					}
@@ -417,7 +495,16 @@ XBBool
 SND_Unload (SND_Id id)
 {
 	if (soundInitialized) {
-		Mix_FreeChunk (sound_chunk[id]);
+		StopSoundTracks (id);
+		if (NULL != sound_audio[id]) {
+			MIX_DestroyAudio (sound_audio[id]);
+			sound_audio[id] = NULL;
+		}
+		if (NULL != sound_name[id].samples) {
+			free (sound_name[id].samples);
+			sound_name[id].samples = NULL;
+			sound_name[id].length = 0;
+		}
 	}
 	return XBTrue;
 }								/* SND_Unload */
@@ -439,7 +526,35 @@ SND_Flush (void)
 void
 SND_Finish (void)
 {
-	Mix_CloseAudio ();
+	int i;
+
+	if (NULL != mixer) {
+		for (i = 0; i < SND_CHANNELS; i++) {
+			if (NULL != sound_track[i]) {
+				MIX_DestroyTrack (sound_track[i]);
+				sound_track[i] = NULL;
+			}
+			sound_owner[i] = SND_MAX;
+		}
+		for (i = 0; i < SND_MAX; i++) {
+			if (NULL != sound_audio[i]) {
+				MIX_DestroyAudio (sound_audio[i]);
+				sound_audio[i] = NULL;
+			}
+			if (NULL != sound_name[i].samples) {
+				free (sound_name[i].samples);
+				sound_name[i].samples = NULL;
+				sound_name[i].length = 0;
+			}
+		}
+		MIX_DestroyMixer (mixer);
+		mixer = NULL;
+	}
+	MIX_Quit ();
 
 	soundInitialized = XBFalse;
 }								/* SND_Finish */
+
+/*
+ * end of file sdl_sound.c
+ */

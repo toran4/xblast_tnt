@@ -24,6 +24,7 @@
 #define XBLAST_SDL_COLOR_PIXMAP_H
 
 extern XBBool InitPixmap (void);
+extern void FinishPixmap (void);
 
 #endif
 /*

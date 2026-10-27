@@ -37,7 +37,7 @@
 /*
  * global prototypes
  */
-extern long PASCAL WindowProc (HWND window, UINT message, UINT w_param, LONG l_param);
+extern LRESULT CALLBACK WindowProc (HWND window, UINT message, UINT w_param, LONG l_param);
 extern XBBool InitEvent (void);
 extern void FinishEvent (void);
 

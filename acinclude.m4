@@ -13,6 +13,7 @@ AC_DEFUN([MY_EXPAND_DIR], [
 AC_DEFUN([XBLAST_CC_SET_CFLAGS],[
 if test "${ac_cv_c_compiler_gnu}" = "yes"; then
   CFLAGS="$CFLAGS \
+	-fcommon \
 	-ggdb \
 	-Wall \
 	-Wcast-align \

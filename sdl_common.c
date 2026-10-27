@@ -30,6 +30,7 @@
  */
 SDL_Surface *screen = NULL;
 SDL_Surface *pix = NULL;
+SDL_Window *sdlWindow = NULL;
 
 const char *xblastClass = "XBlast";
 

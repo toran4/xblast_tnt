@@ -154,6 +154,14 @@ InitPlayerInput (XBPlayerHost hostType, const CFGGamePlayers * gamePlayers,
 				code = XBE_JOYST_2;
 				stopkey = XBTrue;
 				break;
+			case XBPC_Joystick3:
+				code = XBE_JOYST_3;
+				stopkey = XBTrue;
+				break;
+			case XBPC_Joystick4:
+				code = XBE_JOYST_4;
+				stopkey = XBTrue;
+				break;
 			default:
 				fprintf (stderr, "player %u (local) with unsupported control %u\n", i,
 						 gamePlayers->control[i]);

@@ -27,6 +27,7 @@
  * global prototypes
  */
 extern XBBool InitSprites (void);
+extern void FinishSprites (void);
 extern void CopyExplosion (SDL_Surface * pix_tile, int i);
 
 #endif

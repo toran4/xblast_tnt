@@ -24,11 +24,9 @@
 #ifndef XBLAST_SDL_COMMON_H
 #define XBLAST_SDL_COMMON_H
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_ttf.h>
-#include <SDL/SDL_gfxPrimitives.h>
-#include <SDL/SDL_keyboard.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include "sdl_event.h"
 #include "sdl_keysym.h"
@@ -42,13 +40,9 @@
 #include "sdl_pixmap.h"
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-#define RMASK 0x0000FF
-#define GMASK 0x00FF00
-#define BMASK 0xFF0000
+#define PPM_PIXELFORMAT SDL_PIXELFORMAT_RGB24
 #else
-#define RMASK 0xFF0000
-#define GMASK 0x00FF00
-#define BMASK 0x0000FF
+#define PPM_PIXELFORMAT SDL_PIXELFORMAT_BGR24
 #endif
 
 /*
@@ -61,8 +55,19 @@
  */
 extern SDL_Surface *screen;
 extern SDL_Surface *pix;
+extern SDL_Window *sdlWindow;
 
 extern const char *xblastClass;
+
+/*
+ * global prototypes
+ */
+extern void GUI_PresentScreen (void);
+extern void GUI_PresentScreenRect (const SDL_Rect * rect);
+extern void GUI_GetScreenDestination (const SDL_Surface * winSurface, SDL_Rect * dst);
+extern XBBool GUI_WindowToScreen (float wx, float wy, int *sx, int *sy);
+extern XBBool GUI_HandleHotKey (const SDL_KeyboardEvent * key);
+extern void GUI_Quit (void);
 
 #endif
 /*

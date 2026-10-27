@@ -115,8 +115,8 @@ InitTiles (void)
 
 	temp =
 		ReadCchPixmap (imgPathMisc, imgFileTitle, COLOR_BLACK, COLOR_GRAY_75, COLOR_MIDNIGHT_BLUE);
-	ClearPix = SDL_DisplayFormat (temp);
-	SDL_FreeSurface (temp);
+	ClearPix = SDL_ConvertSurface (temp, screen->format);
+	SDL_DestroySurface (temp);
 
 	return XBTrue;
 }								/* InitTiles */
@@ -264,13 +264,7 @@ GUI_InitExplosionBlocks (void)
 	int i;
 
 	for (i = 0; i < MAX_EXPLOSION; i++) {
-		pixExplBlock[i] = SDL_CreateRGBSurface (screen->flags,
-												BLOCK_WIDTH,
-												BLOCK_HEIGHT,
-												screen->format->BitsPerPixel,
-												screen->format->Rmask,
-												screen->format->Gmask,
-												screen->format->Bmask, screen->format->Amask);
+		pixExplBlock[i] = SDL_CreateSurface (BLOCK_WIDTH, BLOCK_HEIGHT, screen->format);
 
 		SDL_BlitSurface (pixBlock[0], NULL, pixExplBlock[i], NULL);
 
@@ -289,7 +283,7 @@ GUI_FreeBlock (int in_pix)
 	assert (in_pix < MAX_TILE);
 	/* free pixmap */
 	if (NULL != pixBlock[in_pix]) {
-		SDL_FreeSurface (pixBlock[in_pix]);
+		SDL_DestroySurface (pixBlock[in_pix]);
 		pixBlock[in_pix] = NULL;
 	}
 }								/* GUI_FreeBlock */
@@ -303,7 +297,7 @@ GUI_FreeExplosionBlocks (void)
 	int i;
 
 	for (i = 0; i < MAX_EXPLOSION; i++) {
-		SDL_FreeSurface (pixExplBlock[i]);
+		SDL_DestroySurface (pixExplBlock[i]);
 	}
 }								/* GUI_FreeExplosionBlocks */
 
@@ -391,6 +385,32 @@ GUI_DrawTimeLed (int x, int block)
 	SDL_BlitSurface (pixLeds[block], NULL, screen, &Rect);
 
 }								/* GUI_DrawTimeLed  */
+
+/*
+ * release all tile resources
+ */
+void
+FinishTiles (void)
+{
+	int i;
+
+	for (i = 0; i < MAX_TILE; i++) {
+		SDL_DestroySurface (pixBlock[i]);
+		pixBlock[i] = NULL;
+	}
+	for (i = 0; i < MAX_LEDS; i++) {
+		SDL_DestroySurface (pixLeds[i]);
+		pixLeds[i] = NULL;
+	}
+	for (i = 0; i < MAX_SCORE_TILES; i++) {
+		SDL_DestroySurface (pixScore[i]);
+		pixScore[i] = NULL;
+	}
+	for (i = 0; i < MAX_EXPLOSION; i++) {
+		SDL_DestroySurface (pixExplBlock[i]);
+		pixExplBlock[i] = NULL;
+	}
+}								/* FinishTiles */
 
 /*
  * end of file x11c_tile.c

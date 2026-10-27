@@ -1,7 +1,5 @@
 /*
- * file x11_joystick.c - joystick support for linux
- *
- * $Id: sdl_joystick.c,v 1.5 2006/03/28 11:48:02 fzago Exp $
+ * file sdl_joystick.c - joystick support for linux
  *
  * Program XBLAST 
  * (C) by Oliver Vogel (e-mail: m.vogel@ndh.net)
@@ -23,7 +21,7 @@
 
 #include "xblast.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "sdl_joystick.h"
 
@@ -44,6 +42,7 @@
 typedef struct
 {
 	SDL_Joystick *joy;
+	SDL_JoystickID id;			/* SDL instance id, -1 if unused */
 	XBEventCode event;
 	unsigned dir;
 } XBJoystick;
@@ -51,28 +50,30 @@ typedef struct
 /*
  * local variables
  */
-/*
-#ifndef NO_JOYSTICK
-static const char *joyDevice[NUM_JOYSTICKS] = {
-  "/dev/js0",
-  "/dev/js1",
-  "/dev/input/js0",
-  "/dev/input/js1",
-  "/dev/input/js2",
-  "/dev/input/js3",
-};
-
-*/
 static XBJoystick joystick[NUM_JOYSTICKS] = {
-	{NULL, XBE_NONE, 0},
-	{NULL, XBE_NONE, 0},
-	{NULL, XBE_NONE, 0},
-	{NULL, XBE_NONE, 0},
-	{NULL, XBE_NONE, 0},
-	{NULL, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
+	{NULL, -1, XBE_NONE, 0},
 };
 
-//#endif
+/*
+ * translate an SDL joystick instance id to our slot index
+ */
+static int
+JoystickIndex (SDL_JoystickID id)
+{
+	int i;
+
+	for (i = 0; i < NUM_JOYSTICKS; i++) {
+		if (NULL != joystick[i].joy && joystick[i].id == id) {
+			return i;
+		}
+	}
+	return -1;
+}								/* JoystickIndex */
 
 /*
  * global function: GUI_NumJoysticks
@@ -82,7 +83,18 @@ static XBJoystick joystick[NUM_JOYSTICKS] = {
 int
 GUI_NumJoysticks (void)
 {
-	return SDL_NumJoysticks ();
+	SDL_JoystickID *joys;
+	int count = 0;
+
+	joys = SDL_GetJoysticks (&count);
+	if (NULL != joys) {
+		SDL_free (joys);
+	}
+	/* there are only event codes for four joystick players */
+	if (count > 4) {
+		count = 4;
+	}
+	return count;
 }								/* GUI_NumJoysticks */
 
 /*
@@ -91,22 +103,32 @@ GUI_NumJoysticks (void)
 XBBool
 InitJoystick (void)
 {
-	int i;
+	SDL_JoystickID *joys;
+	int count, i, j;
 
-	if (SDL_InitSubSystem (SDL_INIT_JOYSTICK) == -1) {
-		fprintf (stderr, "Error: Could not initializate joystick!\n"
-				 "Reason: %s\n", SDL_GetError ());
-		return XBFalse;
+	if (!SDL_InitSubSystem (SDL_INIT_JOYSTICK)) {
+		/* joysticks are optional, the game is perfectly playable without */
+		fprintf (stderr, "Warning: no joystick support: %s\n", SDL_GetError ());
+		return XBTrue;
 	}
 
-	for (i = 0; i < SDL_NumJoysticks () && i < NUM_JOYSTICKS; i++) {
-		joystick[i].joy = SDL_JoystickOpen (i);
-		if (joystick[i].joy) {
-			printf ("Using joysitck %d\n", i);
-			i++;
+	joys = SDL_GetJoysticks (&count);
+	if (NULL == joys) {
+		count = 0;
+	}
+	for (i = 0, j = 0; i < count && j < NUM_JOYSTICKS && j < 4; i++) {
+		joystick[j].joy = SDL_OpenJoystick (joys[i]);
+		if (joystick[j].joy) {
+			joystick[j].id = joys[i];
+			joystick[j].event = XBE_JOYST_1 + j;
+			printf ("Using joystick %d\n", j);
+			j++;
 		}
 		else
 			printf ("Couldn't open joystick %d\n", i);
+	}
+	if (NULL != joys) {
+		SDL_free (joys);
 	}
 
 	return XBTrue;
@@ -122,12 +144,13 @@ FinishJoystick (void)
 	for (i = 0; i < NUM_JOYSTICKS; i++) {
 		if (joystick[i].joy != NULL) {
 			printf ("Closing joystick %d\n", i);
-			SDL_JoystickClose (joystick[i].joy);
+			SDL_CloseJoystick (joystick[i].joy);
+			joystick[i].joy = NULL;
+			joystick[i].id = -1;
 		}
 	}
 }								/* FinishJoystick */
 
-#ifndef NO_JOYSTICK
 /*
  * calculate new joystick direction from axis-event
  */
@@ -161,7 +184,6 @@ EvalJoystickMove (unsigned dir, unsigned axis, int value)
 #endif
 	return newDir;
 }								/* EvalJoystickMove */
-#endif
 
 /*
  * handle new joystick event during game
@@ -171,10 +193,15 @@ HandleXBlastJoystick (SDL_Event * event)
 {
 	unsigned newDir;
 	int value;
+	int which;
 
 	switch (event->type) {
-	case SDL_JOYAXISMOTION:
-		newDir = EvalJoystickMove (joystick[event->jaxis.which].dir,
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+		which = JoystickIndex (event->jaxis.which);
+		if (which < 0) {
+			break;
+		}
+		newDir = EvalJoystickMove (joystick[which].dir,
 								   event->jaxis.axis, event->jaxis.value);
 		switch (newDir) {
 		case JOYDIR_UP:
@@ -196,40 +223,48 @@ HandleXBlastJoystick (SDL_Event * event)
 			value = XBGK_NONE;
 			break;
 		}
-		if (value != XBGK_NONE && newDir != joystick[event->jaxis.which].dir) {
-			QueueEventValue (joystick[event->jaxis.which].event, value);
-			joystick[event->jaxis.which].dir = newDir;
+		if (value != XBGK_NONE && newDir != joystick[which].dir) {
+			QueueEventValue (joystick[which].event, value);
+			joystick[which].dir = newDir;
 		}
 		break;
 
-	case SDL_JOYHATMOTION:
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+		which = JoystickIndex (event->jhat.which);
+		if (which < 0) {
+			break;
+		}
 		if (event->jhat.value & SDL_HAT_UP) {
-			QueueEventValue (joystick[event->jaxis.which].event, XBGK_GO_UP);
-			joystick[event->jaxis.which].dir |= JOYDIR_UP;
+			QueueEventValue (joystick[which].event, XBGK_GO_UP);
+			joystick[which].dir |= JOYDIR_UP;
 		}
 		if (event->jhat.value & SDL_HAT_DOWN) {
-			QueueEventValue (joystick[event->jaxis.which].event, XBGK_GO_DOWN);
-			joystick[event->jaxis.which].dir |= JOYDIR_DOWN;
+			QueueEventValue (joystick[which].event, XBGK_GO_DOWN);
+			joystick[which].dir |= JOYDIR_DOWN;
 		}
 		if (event->jhat.value & SDL_HAT_RIGHT) {
-			QueueEventValue (joystick[event->jaxis.which].event, XBGK_GO_RIGHT);
-			joystick[event->jaxis.which].dir |= JOYDIR_RIGHT;
+			QueueEventValue (joystick[which].event, XBGK_GO_RIGHT);
+			joystick[which].dir |= JOYDIR_RIGHT;
 		}
 		if (event->jhat.value & SDL_HAT_LEFT) {
-			QueueEventValue (joystick[event->jaxis.which].event, XBGK_GO_LEFT);
-			joystick[event->jaxis.which].dir |= JOYDIR_LEFT;
+			QueueEventValue (joystick[which].event, XBGK_GO_LEFT);
+			joystick[which].dir |= JOYDIR_LEFT;
 		}
-		if (event->jhat.value & XBGK_STOP_ALL) {
-			QueueEventValue (joystick[event->jaxis.which].event, XBGK_STOP_ALL);
-			joystick[event->jaxis.which].dir = JOYDIR_NONE;
+		if (SDL_HAT_CENTERED == event->jhat.value) {
+			QueueEventValue (joystick[which].event, XBGK_STOP_ALL);
+			joystick[which].dir = JOYDIR_NONE;
 		}
 		break;
 
-	case SDL_JOYBUTTONDOWN:
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+		which = JoystickIndex (event->jbutton.which);
+		if (which < 0) {
+			break;
+		}
 		if (event->jbutton.button == 0)
-			QueueEventValue (joystick[event->jbutton.which].event, XBGK_BOMB);
+			QueueEventValue (joystick[which].event, XBGK_BOMB);
 		if (event->jbutton.button == 1)
-			QueueEventValue (joystick[event->jbutton.which].event, XBGK_SPECIAL);
+			QueueEventValue (joystick[which].event, XBGK_SPECIAL);
 		break;
 	}
 }								/* HandleJoystick */
@@ -241,13 +276,18 @@ void
 HandleMenuJoystick (SDL_Event * event)
 {
 	unsigned newDir;
+	int which;
 
 	switch (event->type) {
-	case SDL_JOYAXISMOTION:
-		newDir = EvalJoystickMove (joystick[event->jaxis.which].dir,
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+		which = JoystickIndex (event->jaxis.which);
+		if (which < 0) {
+			break;
+		}
+		newDir = EvalJoystickMove (joystick[which].dir,
 								   event->jaxis.axis, event->jaxis.value);
 		/* test changes in y dir */
-		if ((newDir & JOYDIR_Y) != (joystick[event->jaxis.which].dir & JOYDIR_Y)) {
+		if ((newDir & JOYDIR_Y) != (joystick[which].dir & JOYDIR_Y)) {
 			switch (newDir & JOYDIR_Y) {
 			case JOYDIR_UP:
 				QueueEventValue (XBE_MENU, XBMK_UP);
@@ -260,7 +300,7 @@ HandleMenuJoystick (SDL_Event * event)
 			}
 		}
 		/* test changes in x dir */
-		if ((newDir & JOYDIR_X) != (joystick[event->jaxis.which].dir & JOYDIR_X)) {
+		if ((newDir & JOYDIR_X) != (joystick[which].dir & JOYDIR_X)) {
 			switch (newDir & JOYDIR_X) {
 			case JOYDIR_LEFT:
 				QueueEventValue (XBE_MENU, XBMK_LEFT);
@@ -272,10 +312,14 @@ HandleMenuJoystick (SDL_Event * event)
 				break;
 			}
 		}
-		joystick[event->jaxis.which].dir = newDir;
+		joystick[which].dir = newDir;
 		break;
 
-	case SDL_JOYHATMOTION:
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+		which = JoystickIndex (event->jhat.which);
+		if (which < 0) {
+			break;
+		}
 		if (event->jhat.value & SDL_HAT_UP)
 			QueueEventValue (XBE_MENU, XBMK_UP);
 		if (event->jhat.value & SDL_HAT_DOWN)
@@ -286,12 +330,15 @@ HandleMenuJoystick (SDL_Event * event)
 			QueueEventValue (XBE_MENU, XBMK_LEFT);
 		break;
 
-	case SDL_JOYBUTTONUP:
+	case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		if (JoystickIndex (event->jbutton.which) < 0) {
+			break;
+		}
 		QueueEventValue (XBE_MENU, XBMK_SELECT);
 		break;
 	}
 }								/* HandleMenuJoystick */
 
 /*
- * end of file x11_joystick.c
+ * end of file sdl_joystick.c
  */

@@ -40,6 +40,12 @@ COMPILING THE BINARY
 
  o run 'configure' with appropriate options
 
+    o for the SDL3 frontend (instead of X11; requires the SDL3,
+      SDL3_image, SDL3_ttf and SDL3_mixer development files).
+      Sound support (SDL3_mixer) is built in.
+
+      --enable-sdl
+
     o for public installation (requires root)
 	(will install binaries in /usr/games/bin and 
 	 data into /usr/share/games/XBlast-TNT)
@@ -98,5 +104,4 @@ xblast and xbsndsrv in /usr/bin:
  for details on compilation with msvc, contact devs
 
 for more informations read README or pass by:
-http://xblast.sf.net/irc/
 http://xblast.sf.net/

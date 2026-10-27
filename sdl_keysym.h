@@ -25,8 +25,9 @@
  */
 extern XBBool InitKeysym (void);
 extern void FinishKeysym (void);
-extern SDLKey StringToVirtualKey (const char *name);
-extern XBAtom VirtualKeyToAtom (SDLKey code);
+extern SDL_Keycode StringToVirtualKey (const char *name);
+extern XBAtom VirtualKeyToAtom (SDL_Keycode code);
+extern SDL_Keycode NormalizeKey (SDL_Keycode code);
 
 #endif
 /*

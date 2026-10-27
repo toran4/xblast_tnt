@@ -36,13 +36,9 @@ AC_C_CONST
 dnl AC_DEFINE_UNQUOTED(DATADIR, "$datadir")
 
 dnl Check whether we want X11 or SDL
-AC_ARG_ENABLE([sdl],[  --enable-sdl, enable compilation with SDL], [
+AC_ARG_ENABLE([sdl],[  --enable-sdl, enable compilation with SDL3], [
 case "${enableval}" in
-  yes) sdl=true 
-  CFLAGS="$CFLAGS -DSDL `sdl-config --cflags`"
-  LDFLAGS="$LDFLAGS "
-  LIBS="$LIBS `sdl-config --libs`";;
-
+  yes) sdl=true ;;
   no)  sdl=false ;;
   *) AC_MSG_ERROR(bad value ${enableval} for --enable-sdl) ;;
 esac],[sdl=false])
@@ -54,38 +50,13 @@ if test x$sdl = xfalse ; then
   dnl Replace `main' with a function in -lX11:
   AC_CHECK_LIB(X11, main)
 else
-  SDL_VERSION=1.2.0
-  AM_PATH_SDL($SDL_VERSION, : , AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
-  AC_CHECK_LIB(SDL_image, main,,
-  [
-  AC_MSG_ERROR(Cannot find required library SDL-image.)
-  exit 1;
-  ] 
-  )
-  AC_CHECK_LIB(SDL_ttf, main,,
-  [
-  AC_MSG_ERROR(Cannot find required library SDL-ttf.)
-  exit 1;
-  ] 
-  )
-  AC_CHECK_LIB(SDL_mixer, main,,
-  [
-  AC_MSG_ERROR(Cannot find required library SDL-mixer.)
-  exit 1;
-  ]
-  )
-  AC_CHECK_LIB(SDL_net, main)dnl,,
- dnl [
-dnl  AC_MSG_ERROR(Cannot find required library SDL-net.)
- dnl exit 1;
-dnl  ]
- dnl )
-  AC_CHECK_LIB(SDL_gfx, main,,
-  [
-  AC_MSG_ERROR(Cannot find required library SDL-gfx.)
-  exit 1;
-  ]
-  )
+  PKG_PROG_PKG_CONFIG
+  PKG_CHECK_MODULES([SDL3], [sdl3])
+  PKG_CHECK_MODULES([SDL3_IMAGE], [sdl3-image])
+  PKG_CHECK_MODULES([SDL3_TTF], [sdl3-ttf])
+  PKG_CHECK_MODULES([SDL3_MIXER], [sdl3-mixer])
+  CFLAGS="$CFLAGS -DSDL -DXBLAST_SOUND $SDL3_CFLAGS $SDL3_IMAGE_CFLAGS $SDL3_TTF_CFLAGS $SDL3_MIXER_CFLAGS"
+  LIBS="$LIBS $SDL3_LIBS $SDL3_IMAGE_LIBS $SDL3_TTF_LIBS $SDL3_MIXER_LIBS"
 fi
 
 dnl Checks for libraries.
