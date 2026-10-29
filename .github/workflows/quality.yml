@@ -95,4 +95,3 @@ jobs:
 
       - name: Compile
         run: make -j"$(nproc)"
-```<|end|><|start|>write to=assistant<|channel|>analysis<|message|>Created file successfully: .github/workflows/quality.yml
