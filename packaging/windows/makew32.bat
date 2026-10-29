@@ -1,6 +1,6 @@
 @echo off
 del xblast.exe
-copy makefile.w32 makefile
+copy packaging\windows\makefile.w32 makefile
 cmake clean
 cmake
 strip xblast.exe

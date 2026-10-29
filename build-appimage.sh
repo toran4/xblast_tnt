@@ -112,7 +112,7 @@ VERSION=$(sed -n \
     -e 's/^#define VERSION_MAJOR[[:space:]]*\([0-9][0-9]*\).*/\1/p' \
     -e 's/^#define VERSION_MINOR[[:space:]]*\([0-9][0-9]*\).*/\1/p' \
     -e 's/^#define VERSION_PATCH[[:space:]]*\([0-9][0-9]*\).*/\1/p' \
-    "$SCRIPT_DIR/version.h" | paste -sd. -)
+    "$SCRIPT_DIR/src/version.h" | paste -sd. -)
 [ -n "$VERSION" ] || die "could not determine version from version.h"
 
 case "$(uname -m)" in
@@ -299,7 +299,7 @@ install -m 644 COPYING "$APPDIR/usr/share/doc/${APP_ID}/COPYING" 2>/dev/null || 
 install -m 644 README  "$APPDIR/usr/share/doc/${APP_ID}/README"  2>/dev/null || true
 
 # Icon: the 32x32 bomb icon from the Windows resources, scaled up as pixel art.
-"$IM" "$SRC_DIR/xblast.ico" -filter point -resize 256x256 \
+"$IM" "$SRC_DIR/packaging/windows/xblast.ico" -filter point -resize 256x256 \
     "$APPDIR/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
 
 # Desktop entry

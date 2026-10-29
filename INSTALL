@@ -82,7 +82,7 @@ xblast and xbsndsrv in /usr/bin:
 
  o uncomment CYGWIN vars for binary independent of cygwin1.dll (requires mingw)
 
- o run 'make -f Makefile.windows' to create the binary
+ o run 'make -f packaging/windows/Makefile.windows' to create the binary
 
  o move xblast dir where you want it
 

@@ -5,6 +5,9 @@
  */
 XBLASTDIR=$(LIBDIR)/xblast
 
+VPATH = src
+INCLUDES = -Isrc
+
 /*
  * Libraries needed for XBlast 
  * (The Solaris setting is very conservative)

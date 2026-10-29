@@ -26,7 +26,7 @@ echo '<?xml version="1.0"?>
 					<Directory Id="level" Name="level">
                         <Component Guid="D43DBE90-ED72-4850-A136-E22E608BF966" Id="level" DiskId="1">
                             <CreateFolder/>
-'>xblast.wxs
+'>packaging/windows/xblast.wxs
 cd level
 list=`ls *xal`
 for i in $list ; do
@@ -36,8 +36,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\" Name=\"$k\" LongName=\"$i\" src=\"level\\$i\"/\> >../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs		
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs		
 done;
 cd ..
 
@@ -47,8 +47,8 @@ echo '
 					<Directory Id="image" Name="image">
                                              
 '> tmp
-cat xblast.wxs tmp > tmp2
-mv tmp2 xblast.wxs
+cat packaging/windows/xblast.wxs tmp > tmp2
+mv tmp2 packaging/windows/xblast.wxs
 cd image
 echo '
 
@@ -57,8 +57,8 @@ echo '
 						<CreateFolder/>
 
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 
 cd explosion
 list=`ls`
@@ -71,8 +71,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\"  Name=\"$k\" LongName=\"$i\" src=\"image\\explosion\\$i\"/\> >../../tmp
-cat ../../xblast.wxs ../../tmp > ../../tmp2
-mv ../../tmp2 ../../xblast.wxs		
+cat ../../packaging/windows/xblast.wxs ../../tmp > ../../tmp2
+mv ../../tmp2 ../../packaging/windows/xblast.wxs		
 done;
 cd ..
 echo '
@@ -82,8 +82,8 @@ echo '
                             <Component Guid="4BE81B9C-4C79-46FF-9AE7-F21DD648BA22" Id="sprite" DiskId="1">
 						<CreateFolder/>
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 cd sprite
 list=`ls`
 for i in $list ; do
@@ -95,8 +95,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\"  Name=\"$k\" LongName=\"$i\" src=\"image\\sprite\\$i\"/\> >../../tmp
-cat ../../xblast.wxs ../../tmp > ../../tmp2
-mv ../../tmp2 ../../xblast.wxs		
+cat ../../packaging/windows/xblast.wxs ../../tmp > ../../tmp2
+mv ../../tmp2 ../../packaging/windows/xblast.wxs		
 done;
 cd ..
 echo '
@@ -106,8 +106,8 @@ echo '
                             <Component Guid="E50ECA52-F994-4C52-93E8-848A0C488166" Id="block" DiskId="1">
 						<CreateFolder/>
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 cd block
 list=`ls`
 for i in $list ; do
@@ -119,8 +119,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\" Name=\"$k\" LongName=\"$i\" src=\"image\\block\\$i\"/\> >../../tmp
-cat ../../xblast.wxs ../../tmp > ../../tmp2
-mv ../../tmp2 ../../xblast.wxs		
+cat ../../packaging/windows/xblast.wxs ../../tmp > ../../tmp2
+mv ../../tmp2 ../../packaging/windows/xblast.wxs		
 done;
 cd ..
 echo '
@@ -130,8 +130,8 @@ echo '
                             <Component Guid="C0597AA7-C8F9-4B0B-9942-E0B8AF9E1013" Id="score" DiskId="1">
 						<CreateFolder/>
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 cd score
 list=`ls`
 for i in $list ; do
@@ -143,8 +143,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\" Name=\"$k\" LongName=\"$i\" src=\"image\\score\\$i\"/\> >../../tmp
-cat ../../xblast.wxs ../../tmp > ../../tmp2
-mv ../../tmp2 ../../xblast.wxs		
+cat ../../packaging/windows/xblast.wxs ../../tmp > ../../tmp2
+mv ../../tmp2 ../../packaging/windows/xblast.wxs		
 done;
 cd ..
 echo '
@@ -154,8 +154,8 @@ echo '
                             <Component Guid="AEF21DB4-B34B-4645-95C7-BEC682DA628E" Id="misc" DiskId="1">
 						<CreateFolder/>
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 cd misc
 list=`ls`
 for i in $list ; do
@@ -167,8 +167,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\" Name=\"$k\" LongName=\"$i\" src=\"image\\misc\\$i\"/\> >../../tmp
-cat ../../xblast.wxs ../../tmp > ../../tmp2
-mv ../../tmp2 ../../xblast.wxs		
+cat ../../packaging/windows/xblast.wxs ../../tmp > ../../tmp2
+mv ../../tmp2 ../../packaging/windows/xblast.wxs		
 done;
 cd ..
 cd ..
@@ -182,8 +182,8 @@ echo '
 						<CreateFolder/>
 
 '> ../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs
 list=`ls`
 for i in $list ; do
 if [ ${#i} -gt 8 ]; then
@@ -194,8 +194,8 @@ else
 k=$i
 fi
 echo \<File Id=\"$i\" Name=\"$k\" LongName=\"$i\" src=\"sounds\\$i\"/\> >../tmp
-cat ../xblast.wxs ../tmp > ../tmp2
-mv ../tmp2 ../xblast.wxs		
+cat ../packaging/windows/xblast.wxs ../tmp > ../tmp2
+mv ../tmp2 ../packaging/windows/xblast.wxs		
 done;
 cd ..
 
@@ -218,7 +218,7 @@ echo '
 		</Feature>
 	</Product>
 </Wix>'> tmp
-cat xblast.wxs tmp > tmp2
-mv tmp2 xblast.wxs
+cat packaging/windows/xblast.wxs tmp > tmp2
+mv tmp2 packaging/windows/xblast.wxs
 
 

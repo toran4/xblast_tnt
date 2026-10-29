@@ -87,427 +87,427 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\action.c
+SOURCE=..\..\src\action.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\atom.c
+SOURCE=..\..\src\atom.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\bomb.c
+SOURCE=..\..\src\bomb.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\bot.c
+SOURCE=..\..\src\bot.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\browse.c
+SOURCE=..\..\src\browse.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\central.c
+SOURCE=..\..\src\central.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_control.c
+SOURCE=..\..\src\cfg_control.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_demo.c
+SOURCE=..\..\src\cfg_demo.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_game.c
+SOURCE=..\..\src\cfg_game.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_level.c
+SOURCE=..\..\src\cfg_level.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_main.c
+SOURCE=..\..\src\cfg_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_player.c
+SOURCE=..\..\src\cfg_player.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_stat.c
+SOURCE=..\..\src\cfg_stat.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_xblast.c
+SOURCE=..\..\src\cfg_xblast.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\chat.c
+SOURCE=..\..\src\chat.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\client.c
+SOURCE=..\..\src\client.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\color.c
+SOURCE=..\..\src\color.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com.c
+SOURCE=..\..\src\com.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_base.c
+SOURCE=..\..\src\com_base.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_browse.c
+SOURCE=..\..\src\com_browse.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_central.c
+SOURCE=..\..\src\com_central.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dg_client.c
+SOURCE=..\..\src\com_dg_client.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dg_server.c
+SOURCE=..\..\src\com_dg_server.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dgram.c
+SOURCE=..\..\src\com_dgram.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_from_central.c
+SOURCE=..\..\src\com_from_central.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_listen.c
+SOURCE=..\..\src\com_listen.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_newgame.c
+SOURCE=..\..\src\com_newgame.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_query.c
+SOURCE=..\..\src\com_query.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_reply.c
+SOURCE=..\..\src\com_reply.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_stream.c
+SOURCE=..\..\src\com_stream.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_central.c
+SOURCE=..\..\src\com_to_central.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_client.c
+SOURCE=..\..\src\com_to_client.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_server.c
+SOURCE=..\..\src\com_to_server.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\dat_rating.c
+SOURCE=..\..\src\dat_rating.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\debug.c
+SOURCE=..\..\src\debug.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\demo.c
+SOURCE=..\..\src\demo.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\event.c
+SOURCE=..\..\src\event.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\func.c
+SOURCE=..\..\src\func.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game.c
+SOURCE=..\..\src\game.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_client.c
+SOURCE=..\..\src\game_client.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_demo.c
+SOURCE=..\..\src\game_demo.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_local.c
+SOURCE=..\..\src\game_local.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_server.c
+SOURCE=..\..\src\game_server.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\image.c
+SOURCE=..\..\src\image.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\info.c
+SOURCE=..\..\src\info.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\ini_file.c
+SOURCE=..\..\src\ini_file.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\intro.c
+SOURCE=..\..\src\intro.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\introdat.c
+SOURCE=..\..\src\introdat.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\level.c
+SOURCE=..\..\src\level.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\map.c
+SOURCE=..\..\src\map.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu.c
+SOURCE=..\..\src\menu.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_control.c
+SOURCE=..\..\src\menu_control.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\menu_edit.c
+SOURCE=..\..\src\menu_edit.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_extras.c
+SOURCE=..\..\src\menu_extras.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_game.c
+SOURCE=..\..\src\menu_game.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_level.c
+SOURCE=..\..\src\menu_level.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_network.c
+SOURCE=..\..\src\menu_network.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_player.c
+SOURCE=..\..\src\menu_player.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_base.c
+SOURCE=..\..\src\mi_base.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_button.c
+SOURCE=..\..\src\mi_button.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_color.c
+SOURCE=..\..\src\mi_color.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_combo.c
+SOURCE=..\..\src\mi_combo.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_cyclic.c
+SOURCE=..\..\src\mi_cyclic.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_host.c
+SOURCE=..\..\src\mi_host.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_int.c
+SOURCE=..\..\src\mi_int.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_keysym.c
+SOURCE=..\..\src\mi_keysym.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_label.c
+SOURCE=..\..\src\mi_label.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_map.c
+SOURCE=..\..\src\mi_map.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_player.c
+SOURCE=..\..\src\mi_player.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_stat.c
+SOURCE=..\..\src\mi_stat.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_string.c
+SOURCE=..\..\src\mi_string.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_tag.c
+SOURCE=..\..\src\mi_tag.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_toggle.c
+SOURCE=..\..\src\mi_toggle.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_tool.c
+SOURCE=..\..\src\mi_tool.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_dgram.c
+SOURCE=..\..\src\net_dgram.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_socket.c
+SOURCE=..\..\src\net_socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_tele.c
+SOURCE=..\..\src\net_tele.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\network.c
+SOURCE=..\..\src\network.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\player.c
+SOURCE=..\..\src\player.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\random.c
+SOURCE=..\..\src\random.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\scramble.c
+SOURCE=..\..\src\scramble.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\server.c
+SOURCE=..\..\src\server.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\shrink.c
+SOURCE=..\..\src\shrink.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\sprite.c
+SOURCE=..\..\src\sprite.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\status.c
+SOURCE=..\..\src\status.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\str_util.c
+SOURCE=..\..\src\str_util.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\user.c
+SOURCE=..\..\src\user.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\util.c
+SOURCE=..\..\src\util.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\version.c
+SOURCE=..\..\src\version.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_atom.c
+SOURCE=..\..\src\w32_atom.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_common.c
+SOURCE=..\..\src\w32_common.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_config.c
+SOURCE=..\..\src\w32_config.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_event.c
+SOURCE=..\..\src\w32_event.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_image.c
+SOURCE=..\..\src\w32_image.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_init.c
+SOURCE=..\..\src\w32_init.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_joystick.c
+SOURCE=..\..\src\w32_joystick.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_keysym.c
+SOURCE=..\..\src\w32_keysym.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_msgbox.c
+SOURCE=..\..\src\w32_msgbox.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_pixmap.c
+SOURCE=..\..\src\w32_pixmap.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_sndsrv.c
+SOURCE=..\..\src\w32_sndsrv.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_socket.c
+SOURCE=..\..\src\w32_socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_sound.c
+SOURCE=..\..\src\w32_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_sprite.c
+SOURCE=..\..\src\w32_sprite.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_text.c
+SOURCE=..\..\src\w32_text.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_tile.c
+SOURCE=..\..\src\w32_tile.c
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\xblast.c
+SOURCE=..\..\src\xblast.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -515,463 +515,459 @@ SOURCE=D:\games\xbtntexp\xblast\xblast.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\action.h
+SOURCE=..\..\src\action.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\atom.h
+SOURCE=..\..\src\atom.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\bomb.h
+SOURCE=..\..\src\bomb.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\bot.h
+SOURCE=..\..\src\bot.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\browse.h
+SOURCE=..\..\src\browse.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\central.h
+SOURCE=..\..\src\central.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_control.h
+SOURCE=..\..\src\cfg_control.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_demo.h
+SOURCE=..\..\src\cfg_demo.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_game.h
+SOURCE=..\..\src\cfg_game.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_level.h
+SOURCE=..\..\src\cfg_level.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_main.h
+SOURCE=..\..\src\cfg_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_player.h
+SOURCE=..\..\src\cfg_player.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_stat.h
+SOURCE=..\..\src\cfg_stat.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\cfg_xblast.h
+SOURCE=..\..\src\cfg_xblast.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\chat.h
+SOURCE=..\..\src\chat.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\client.h
+SOURCE=..\..\src\client.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\color.h
+SOURCE=..\..\src\color.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com.h
+SOURCE=..\..\src\com.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_base.h
+SOURCE=..\..\src\com_base.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_browse.h
+SOURCE=..\..\src\com_browse.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_central.h
+SOURCE=..\..\src\com_central.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dg_client.h
+SOURCE=..\..\src\com_dg_client.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dg_server.h
+SOURCE=..\..\src\com_dg_server.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_dgram.h
+SOURCE=..\..\src\com_dgram.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_from_central.h
+SOURCE=..\..\src\com_from_central.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_listen.h
+SOURCE=..\..\src\com_listen.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_newgame.h
+SOURCE=..\..\src\com_newgame.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_query.h
+SOURCE=..\..\src\com_query.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_reply.h
+SOURCE=..\..\src\com_reply.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_stream.h
+SOURCE=..\..\src\com_stream.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_central.h
+SOURCE=..\..\src\com_to_central.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_client.h
+SOURCE=..\..\src\com_to_client.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\com_to_server.h
+SOURCE=..\..\src\com_to_server.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\common.h
+SOURCE=..\..\config.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\config.h
+SOURCE=..\..\src\dat_rating.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\dat_rating.h
+SOURCE=..\..\src\debug.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\debug.h
+SOURCE=..\..\src\demo.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\demo.h
+SOURCE=..\..\src\event.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\event.h
+SOURCE=..\..\src\func.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\func.h
+SOURCE=..\..\src\game.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game.h
+SOURCE=..\..\src\game_client.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_client.h
+SOURCE=..\..\src\game_demo.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_demo.h
+SOURCE=..\..\src\game_local.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_local.h
+SOURCE=..\..\src\game_server.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\game_server.h
+SOURCE=..\..\src\geom.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\geom.h
+SOURCE=..\..\src\gui.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\gui.h
+SOURCE=..\..\src\image.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\image.h
+SOURCE=..\..\src\info.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\info.h
+SOURCE=..\..\src\ini_file.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\ini_file.h
+SOURCE=..\..\src\intro.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\intro.h
+SOURCE=..\..\src\introdat.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\introdat.h
+SOURCE=..\..\src\level.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\level.h
+SOURCE=..\..\src\map.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\map.h
+SOURCE=..\..\src\menu.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu.h
+SOURCE=..\..\src\menu_control.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_control.h
+SOURCE=..\..\src\menu_edit.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\menu_edit.h
+SOURCE=..\..\src\menu_extras.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_extras.h
+SOURCE=..\..\src\menu_game.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_game.h
+SOURCE=..\..\src\menu_layout.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_layout.h
+SOURCE=..\..\src\menu_level.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_level.h
+SOURCE=..\..\src\menu_network.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_network.h
+SOURCE=..\..\src\menu_player.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\menu_player.h
+SOURCE=..\..\src\mi_base.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_base.h
+SOURCE=..\..\src\mi_button.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_button.h
+SOURCE=..\..\src\mi_color.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_color.h
+SOURCE=..\..\src\mi_combo.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_combo.h
+SOURCE=..\..\src\mi_cyclic.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_cyclic.h
+SOURCE=..\..\src\mi_host.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_host.h
+SOURCE=..\..\src\mi_int.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_int.h
+SOURCE=..\..\src\mi_keysym.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_keysym.h
+SOURCE=..\..\src\mi_label.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_label.h
+SOURCE=..\..\src\mi_map.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_map.h
+SOURCE=..\..\src\mi_player.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_player.h
+SOURCE=..\..\src\mi_stat.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_stat.h
+SOURCE=..\..\src\mi_string.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_string.h
+SOURCE=..\..\src\mi_tag.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_tag.h
+SOURCE=..\..\src\mi_toggle.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_toggle.h
+SOURCE=..\..\src\mi_tool.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\mi_tool.h
+SOURCE=..\..\src\net_dgram.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_dgram.h
+SOURCE=..\..\src\net_socket.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_socket.h
+SOURCE=..\..\src\net_tele.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\net_tele.h
+SOURCE=..\..\src\network.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\network.h
+SOURCE=..\..\src\player.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\player.h
+SOURCE=..\..\src\random.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\random.h
+SOURCE=..\..\src\randomlib.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\randomlib.h
+SOURCE=..\..\src\rating.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\rating.h
+SOURCE=..\..\src\scramble.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\scramble.h
+SOURCE=..\..\src\server.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\server.h
+SOURCE=..\..\src\shrink.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\shrink.h
+SOURCE=..\..\src\shrinkdat.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\shrinkdat.h
+SOURCE=..\..\src\snd.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\snd.h
+SOURCE=..\..\src\socket.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\socket.h
+SOURCE=..\..\src\sprite.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\sprite.h
+SOURCE=..\..\src\status.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\status.h
+SOURCE=..\..\src\str_util.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\str_util.h
+SOURCE=..\..\src\timeval.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\timeval.h
+SOURCE=..\..\src\user.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\user.h
+SOURCE=..\..\src\util.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\util.h
+SOURCE=..\..\src\version.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\version.h
+SOURCE=..\..\src\w32_color.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_color.h
+SOURCE=..\..\src\w32_common.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_common.h
+SOURCE=..\..\src\w32_config.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_config.h
+SOURCE=..\..\src\w32_event.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_event.h
+SOURCE=..\..\src\w32_image.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_image.h
+SOURCE=..\..\src\w32_joystick.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_joystick.h
+SOURCE=..\..\src\w32_keysym.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_keysym.h
+SOURCE=..\..\src\w32_mm.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_mm.h
+SOURCE=..\..\src\w32_pixmap.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_pixmap.h
+SOURCE=..\..\src\w32_sndsrv.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_sndsrv.h
+SOURCE=..\..\src\w32_socket.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_socket.h
+SOURCE=..\..\src\w32_sprite.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_sprite.h
+SOURCE=..\..\src\w32_text.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_text.h
+SOURCE=..\..\src\w32_tile.h
 # End Source File
 # Begin Source File
 
-SOURCE=D:\games\xbtntexp\xblast\w32_tile.h
-# End Source File
-# Begin Source File
-
-SOURCE=D:\games\xbtntexp\xblast\xblast.h
+SOURCE=..\..\src\xblast.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

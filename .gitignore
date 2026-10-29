@@ -57,7 +57,7 @@ po/*.mo
 /dist/
 *.log
 
-# Temporary files written to the source root by makewxs.sh.
+# Temporary files written to the source root by packaging/windows/makewxs.sh.
 /tmp
 /tmp2
 

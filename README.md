@@ -61,23 +61,25 @@ make install
 ### Windows (MinGW)
 
 ```sh
-make -f Makefile.windows
+make -f packaging/windows/Makefile.windows
 ```
 
 ### Cygwin
 
 ```sh
-make -f Makefile.windows
+make -f packaging/windows/Makefile.windows
 ```
 
 
 ## Project layout
 
-- `*.c` / `*.h` — game source
-- `sdl_*` / `x11_*` / `w32_*` — frontend backends
+- `src/` — game source (`*.c` / `*.h`)
+- `src/sdl_*`, `src/x11_*`, `src/w32_*` — frontend backends
 - `image/`, `level/`, `sounds/` — game data
 - `po/` — translations
 - `build-appimage.sh` — Linux AppImage packaging
+- `packaging/windows/` — Windows resources, MinGW makefiles and installer script
+- `build-aux/` — autotools helper scripts
 - `.github/workflows/build.yml` — CI (Linux SDL3/X11, Windows MinGW)
 
 ## Contributing

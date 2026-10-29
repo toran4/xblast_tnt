@@ -1,0 +1,73 @@
+#
+# file makefile - makefile for cygwin including debug infos
+#
+# Program XBlast
+# (C) by Oliver Vogel (e-mail: m.vogel@ndh.net)
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; either version 2; or (at your option)
+# any later version
+#
+# This program is distributed in the hope that it will be entertaining,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILTY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.
+# 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+# cygwin options for exe independent of cygwin1.dll
+# comment out or remove for dependent exe
+CYGWINOPT=
+CYGWINLIB=-lmingw32
+
+DEBUGFLAGS=#-DDEBUG_CHAT -DDEBUG_SERVER -DDEBUG_CLIENT -DDEBUG_NETWORK -DDEBUG_VERSION
+GCCWARN=-Wall -Wno-comment
+GCCOPTS=-O2 -fcommon $(CYGWINOPT) #-std=c99 -pedantic
+XBLAST=-DW32 -DDEBUG_NAT -DXBLAST_SOUND -DMINI_XBLAST #-DREQUESTS
+XBLASTDIRS=-DXBLASTDIR=\".\" -DGAME_DATADIR=\".\"
+
+WINDIR = packaging/windows
+
+CC ?= gcc.exe #/lib/gcc-lib/i686-pc-mingw32/3.2/cc1.exe
+WINDRES ?= windres
+CFLAGS=-Isrc $(GCCOPTS) $(GCCWARN) $(XBLASTDIRS) $(XBLAST) $(DEBUGFLAGS)
+
+LOADLIBES=-lwinmm -luser32 -lgdi32 -lwsock32 -lws2_32 $(CYGWINLIB)
+LDFLAGS=-g -v $(CYGWINOPT)
+
+OBJS_W32= src/xblast.o src/util.o src/str_util.o src/intro.o src/introdat.o src/map.o src/sprite.o \
+	src/color.o src/status.o src/player.o src/bomb.o src/action.o src/event.o src/image.o src/shrink.o \
+	src/func.o src/info.o src/ini_file.o src/atom.o src/scramble.o src/demo.o src/debug.o src/level.o \
+	src/random.o src/game_local.o src/game_demo.o src/game_server.o src/game_client.o src/game.o \
+	src/menu.o src/menu_player.o src/menu_level.o src/menu_control.o src/menu_game.o \
+	src/menu_network.o src/menu_extras.o src/mi_tool.o src/mi_base.o src/mi_button.o \
+	src/mi_color.o src/mi_combo.o src/mi_cyclic.o src/mi_host.o src/mi_int.o src/mi_keysym.o \
+	src/mi_label.o src/mi_player.o src/mi_string.o src/mi_tag.o src/mi_toggle.o src/mi_map.o \
+	src/mi_stat.o src/client.o src/server.o src/central.o src/network.o src/com.o src/browse.o src/com_to_server.o \
+	src/com_listen.o src/com_to_client.o src/com_newgame.o src/com_stream.o src/com_dg_client.o  \
+	src/com_to_central.o src/com_from_central.o src/com_central.o src/user.o src/dat_rating.o \
+	src/com_dg_server.o src/com_dgram.o src/com_query.o src/com_browse.o src/com_reply.o \
+	src/com_base.o src/net_socket.o src/net_tele.o src/net_dgram.o src/cfg_main.o src/cfg_level.o \
+	src/cfg_player.o src/cfg_game.o src/cfg_control.o src/cfg_stat.o src/cfg_demo.o \
+	src/cfg_xblast.o \
+	src/w32_init.o src/w32_event.o src/w32_common.o src/w32_pixmap.o src/w32_image.o \
+	src/w32_text.o src/w32_tile.o src/w32_sprite.o src/w32_atom.o src/w32_config.o \
+	src/w32_keysym.o src/w32_sound.o src/w32_sndsrv.o src/w32_msgbox.o src/w32_joystick.o src/w32_socket.o \
+	src/bot.o src/time.o src/chat.o src/menu_edit.o src/version.o
+
+xblast:	$(OBJS_W32) $(WINDIR)/xblast.coff
+	$(CC) $(LDFLAGS) -o $@ $^ $(LOADLIBES)
+
+$(WINDIR)/xblast.coff: $(WINDIR)/xblast.rc
+	$(WINDRES) -I $(WINDIR) -i $(WINDIR)/xblast.rc -o $(WINDIR)/xblast.coff
+
+clean:
+	rm -f $(OBJS_W32)
+#
+# end of file makefile
+#
+

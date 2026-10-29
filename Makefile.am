@@ -1,15 +1,15 @@
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign subdir-objects
 
 if SDL
 
-sdl_files=sdl_common.h sdl_event.h  sdl_config.h  sdl_image.h sdl_keysym.h\
-	sdl_text.h sdl_tile.h sdl_sprite.h 	sdl_pixmap.h\
-	sdl_common.c sdl_event.c sdl_atom.c sdl_config.c\
-	sdl_msgbox.c	sdl_init.c sdl_image.c sdl_text.c\
-	sdl_tile.c sdl_sprite.c sdl_pixmap.c sdl_keysym.c\
-	sdl_socket.c sdl_joystick.c sdl_socket.h sdl_sprite.h sdl_joystick.h\
-	sdl_sound.c
-x11_files= x11_sound.h 
+sdl_files=src/sdl_common.h src/sdl_event.h  src/sdl_config.h  src/sdl_image.h src/sdl_keysym.h\
+	src/sdl_text.h src/sdl_tile.h src/sdl_sprite.h 	src/sdl_pixmap.h\
+	src/sdl_common.c src/sdl_event.c src/sdl_atom.c src/sdl_config.c\
+	src/sdl_msgbox.c	src/sdl_init.c src/sdl_image.c src/sdl_text.c\
+	src/sdl_tile.c src/sdl_sprite.c src/sdl_pixmap.c src/sdl_keysym.c\
+	src/sdl_socket.c src/sdl_joystick.c src/sdl_socket.h src/sdl_sprite.h src/sdl_joystick.h\
+	src/sdl_sound.c
+x11_files= src/x11_sound.h 
 
 else
 
@@ -20,68 +20,72 @@ soundbinaries =
 endif
 
 sdl_files=
-x11_files=	x11_common.c x11_event.c x11_atom.c x11_config.c\
-	x11_msgbox.c	x11c_init.c x11c_image.c x11c_text.c\
-	x11c_tile.c x11c_sprite.c 	x11c_pixmap.c x11_sound.c\
-	x11_socket.c x11_joystick.c\
-	x11_common.h x11_event.h  x11_config.h  x11c_image.h\
-	x11c_text.h x11c_tile.h x11c_sprite.h 	x11c_pixmap.h\
-	x11_sound.h x11_socket.h x11_joystick.h  
+x11_files=	src/x11_common.c src/x11_event.c src/x11_atom.c src/x11_config.c\
+	src/x11_msgbox.c	src/x11c_init.c src/x11c_image.c src/x11c_text.c\
+	src/x11c_tile.c src/x11c_sprite.c 	src/x11c_pixmap.c src/x11_sound.c\
+	src/x11_socket.c src/x11_joystick.c\
+	src/x11_common.h src/x11_event.h  src/x11_config.h  src/x11c_image.h\
+	src/x11c_text.h src/x11c_tile.h src/x11c_sprite.h 	src/x11c_pixmap.h\
+	src/x11_sound.h src/x11_socket.h src/x11_joystick.h  
 
 endif
 
 bin_PROGRAMS =  ${soundbinaries} xblast
 
-xblast_SOURCES=xblast.c util.c str_util.c intro.c introdat.c map.c sprite.c \
-	color.c status.c player.c action.c bomb.c event.c image.c\
-	shrink.c func.c info.c ini_file.c atom.c scramble.c \
-	demo.c debug.c level.c random.c \
-	game_local.c game_demo.c game_server.c game_client.c game.c\
-	menu.c menu_player.c menu_level.c menu_control.c menu_game.c\
-	menu_network.c menu_extras.c	mi_tool.c mi_base.c\
-	mi_button.c mi_color.c mi_combo.c mi_cyclic.c\
-	mi_host.c mi_int.c mi_keysym.c mi_label.c mi_player.c\
-	mi_string.c 	mi_tag.c mi_toggle.c mi_map.c mi_stat.c	client.c\
-	server.c network.c com.c browse.c	com_to_server.c\
-	com_listen.c com_to_client.c com_stream.c 	com_dg_client.c\
-	com_dg_server.c com_dgram.c 	com_query.c com_browse.c\
-	com_reply.c com_base.c 	net_socket.c net_tele.c\
-	net_dgram.c 	central.c com_newgame.c com_to_central.c\
-	com_from_central.c com_central.c user.c dat_rating.c \
-	cfg_main.c cfg_level.c cfg_player.c cfg_game.c\
-	cfg_control.c 	cfg_stat.c cfg_demo.c cfg_xblast.c\
-	bot.c xblast.h util.h \
-	str_util.h intro.h introdat.h map.h sprite.h 	color.h \
-	status.h player.h action.h bomb.h event.h image.h \
-	shrink.h func.h info.h ini_file.h atom.h scramble.h \
-	demo.h debug.h level.h random.h \
-	game_local.h game_demo.h game_server.h game_client.h game.h\
-	menu.h menu_player.h menu_level.h menu_control.h menu_game.h\
-	menu_network.h menu_extras.h	mi_tool.h mi_base.h\
-	mi_button.h mi_color.h mi_combo.h mi_cyclic.h\
-	mi_host.h mi_int.h mi_keysym.h mi_label.h mi_player.h\
-	mi_string.h 	mi_tag.h mi_toggle.h mi_map.h mi_stat.h	client.h\
-	server.h network.h com.h browse.h	com_to_server.h\
-	com_listen.h com_to_client.h com_stream.h \
-	com_dg_client.h com_dg_server.h com_dgram.h \
-	com_query.h com_browse.h com_reply.h com_base.h \
-	net_socket.h net_tele.h net_dgram.h 	central.h\
-	com_newgame.h com_to_central.h com_from_central.h com_central.h\
-	user.h dat_rating.h 	cfg_main.h cfg_level.h cfg_player.h\
-	cfg_game.h cfg_control.h 	cfg_stat.h cfg_demo.h cfg_xblast.h\
-	bot.h shrinkdat.h\
-	version.h  x11c_sprite.h socket.h  gui.h geom.h config.h snd.h\
-	menu_layout.h chat.h chat.c menu_edit.c menu_edit.h version.c\
+xblast_SOURCES=src/xblast.c src/util.c src/str_util.c src/intro.c src/introdat.c src/map.c src/sprite.c \
+	src/color.c src/status.c src/player.c src/action.c src/bomb.c src/event.c src/image.c\
+	src/shrink.c src/func.c src/info.c src/ini_file.c src/atom.c src/scramble.c \
+	src/demo.c src/debug.c src/level.c src/random.c \
+	src/game_local.c src/game_demo.c src/game_server.c src/game_client.c src/game.c\
+	src/menu.c src/menu_player.c src/menu_level.c src/menu_control.c src/menu_game.c\
+	src/menu_network.c src/menu_extras.c	src/mi_tool.c src/mi_base.c\
+	src/mi_button.c src/mi_color.c src/mi_combo.c src/mi_cyclic.c\
+	src/mi_host.c src/mi_int.c src/mi_keysym.c src/mi_label.c src/mi_player.c\
+	src/mi_string.c 	src/mi_tag.c src/mi_toggle.c src/mi_map.c src/mi_stat.c	src/client.c\
+	src/server.c src/network.c src/com.c src/browse.c	src/com_to_server.c\
+	src/com_listen.c src/com_to_client.c src/com_stream.c 	src/com_dg_client.c\
+	src/com_dg_server.c src/com_dgram.c 	src/com_query.c src/com_browse.c\
+	src/com_reply.c src/com_base.c 	src/net_socket.c src/net_tele.c\
+	src/net_dgram.c 	src/central.c src/com_newgame.c src/com_to_central.c\
+	src/com_from_central.c src/com_central.c src/user.c src/dat_rating.c \
+	src/cfg_main.c src/cfg_level.c src/cfg_player.c src/cfg_game.c\
+	src/cfg_control.c 	src/cfg_stat.c src/cfg_demo.c src/cfg_xblast.c\
+	src/bot.c src/xblast.h src/util.h \
+	src/str_util.h src/intro.h src/introdat.h src/map.h src/sprite.h 	src/color.h \
+	src/status.h src/player.h src/action.h src/bomb.h src/event.h src/image.h \
+	src/shrink.h src/func.h src/info.h src/ini_file.h src/atom.h src/scramble.h \
+	src/demo.h src/debug.h src/level.h src/random.h \
+	src/game_local.h src/game_demo.h src/game_server.h src/game_client.h src/game.h\
+	src/menu.h src/menu_player.h src/menu_level.h src/menu_control.h src/menu_game.h\
+	src/menu_network.h src/menu_extras.h	src/mi_tool.h src/mi_base.h\
+	src/mi_button.h src/mi_color.h src/mi_combo.h src/mi_cyclic.h\
+	src/mi_host.h src/mi_int.h src/mi_keysym.h src/mi_label.h src/mi_player.h\
+	src/mi_string.h 	src/mi_tag.h src/mi_toggle.h src/mi_map.h src/mi_stat.h	src/client.h\
+	src/server.h src/network.h src/com.h src/browse.h	src/com_to_server.h\
+	src/com_listen.h src/com_to_client.h src/com_stream.h \
+	src/com_dg_client.h src/com_dg_server.h src/com_dgram.h \
+	src/com_query.h src/com_browse.h src/com_reply.h src/com_base.h \
+	src/net_socket.h src/net_tele.h src/net_dgram.h 	src/central.h\
+	src/com_newgame.h src/com_to_central.h src/com_from_central.h src/com_central.h\
+	src/user.h src/dat_rating.h 	src/cfg_main.h src/cfg_level.h src/cfg_player.h\
+	src/cfg_game.h src/cfg_control.h 	src/cfg_stat.h src/cfg_demo.h src/cfg_xblast.h\
+	src/bot.h src/shrinkdat.h\
+	src/version.h  src/x11c_sprite.h src/socket.h  src/gui.h src/geom.h config.h src/snd.h\
+	src/menu_layout.h src/chat.h src/chat.c src/menu_edit.c src/menu_edit.h src/version.c\
     ${sdl_files} ${x11_files}
 
-EXTRA_DIST = config.rpath   xblast.man autogen.sh Makefile.w32 Makefile.windows *.ico \
-	*.coff xblast.rc w32*.h w32*.c time.c timeval.h Imakefile\
+EXTRA_DIST = xblast.man autogen.sh \
+	packaging/windows/Makefile.w32 packaging/windows/Makefile.windows \
+	packaging/windows/*.ico packaging/windows/*.coff packaging/windows/*.rc \
+	packaging/windows/*.wxs packaging/windows/*.dsp packaging/windows/*.dsw \
+	packaging/windows/*.rtf packaging/windows/*.sh packaging/windows/*.bat \
+	src/w32*.h src/w32*.c src/time.c src/timeval.h src/SDL_vkeys.h src/config-mingw.h Imakefile\
 	image/misc/*.ppm image/misc/*.pbm  image/explosion/*.pbm \
 	image/explosion/*.ppm image/score/*.epm image/score/*.ppm \
 	image/sprite/*.pbm image/sprite/*.ppm image/block/*.ppm \
 	image/sprite/*.epm level/*.xal sounds/*.raw
 
-xbsndsrv_SOURCES = xbsndsrv.c snd.h 
+xbsndsrv_SOURCES = src/xbsndsrv.c src/snd.h 
 
 game_datadir=@game_datadir@
 localedir = $(game_datadir)/locale
@@ -110,7 +114,7 @@ install-data-local:
 	fi;
 
 indent:
-	 indent -npro -gnu -ts4 -i4 -br -lp -sob -l100 -ss -ncs *.[ch]
+	 indent -npro -gnu -ts4 -i4 -br -lp -sob -l100 -ss -ncs src/*.[ch]
 
 SUBDIRS = po
 

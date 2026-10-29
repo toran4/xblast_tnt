@@ -31,7 +31,7 @@ for:
 
 - Linux, SDL3 frontend (`--enable-sdl`)
 - Linux, X11 frontend with sound (`--enable-sound`)
-- Windows (MinGW) via `Makefile.windows`
+- Windows (MinGW) via `packaging/windows/Makefile.windows`
 
 A separate `quality.yml` workflow builds with AddressSanitizer/UndefinedBehaviorSanitizer
 and runs clang-tidy on changed files.
@@ -39,17 +39,21 @@ and runs clang-tidy on changed files.
 ## Windows (MinGW)
 
 ```sh
-make -f Makefile.windows
+make -f packaging/windows/Makefile.windows
 ```
 
 ## Cygwin
 
 ```sh
-make -f Makefile.windows
+make -f packaging/windows/Makefile.windows
 ```
 
 ## Notes
 
+- The C sources and headers live in `src/`; object files and dependency data
+  are generated in `src/` as well, so the repository root stays clean.
+- Autotools helper scripts live in `build-aux/`, Windows packaging files in
+  `packaging/windows/`.
 - Run `./autogen.sh` after changing `configure.in` or `Makefile.am`.
 - `AUTOMAKE_OPTIONS = foreign` is set so automake does not require/ship
   standard GNU files such as `COPYING` or `NEWS`; the project uses `LICENSE`.

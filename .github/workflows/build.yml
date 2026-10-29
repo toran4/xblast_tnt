@@ -57,5 +57,5 @@ jobs:
 
       - name: Compile
         run: |
-          make -f Makefile.windows clean || true
-          CC=i686-w64-mingw32-gcc WINDRES=i686-w64-mingw32-windres make -f Makefile.windows
+          make -f packaging/windows/Makefile.windows clean || true
+          CC=i686-w64-mingw32-gcc WINDRES=i686-w64-mingw32-windres make -f packaging/windows/Makefile.windows
