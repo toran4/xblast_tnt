@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = foreign
+
 if SDL
 
 sdl_files=sdl_common.h sdl_event.h  sdl_config.h  sdl_image.h sdl_keysym.h\

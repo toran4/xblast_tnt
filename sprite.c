@@ -380,7 +380,7 @@ void
 SetSpriteText (Sprite * sprite, const char *text)
 {
 	assert (sprite != NULL);
-	assert (sprite->type = STText);
+	assert (sprite->type == STText);
 
 	MarkMazeSprite ((Sprite *) sprite);
 	sprite->text.text = text;

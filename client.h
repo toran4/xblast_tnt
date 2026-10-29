@@ -87,7 +87,7 @@ extern void Client_ReceiveLevelConfig (unsigned, const char *data);
 extern void Client_ReceiveRandomSeed (unsigned);
 extern void Client_ReceivePlayerAction (int, const PlayerAction *);
 extern void Client_ReceiveFinish (void);
-extern void Client_ReceiveAsync (XBBool as);
+extern void Client_ReceiveAsync (unsigned as);
 extern XBBool Client_ReceiveDisconnect (unsigned);
 
 /* retrieving local data */

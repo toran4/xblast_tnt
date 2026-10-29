@@ -1,15 +1,3 @@
-GETTING XBLAST
-
- use the Download links on http://xblast.sf.net/
-
- o  get source package xblast, if you want to compile yourself
-
- o  for win you can alternatively get a pre-compiled binary
-
- o  get data packages images, levels, models
-
- o  optionally get sound packages sounds and musics
-
 
 PREPARING SOURCES
 
@@ -98,10 +86,3 @@ xblast and xbsndsrv in /usr/bin:
 
  o move xblast dir where you want it
 
-
- MSVC-Compiler
-
- for details on compilation with msvc, contact devs
-
-for more informations read README or pass by:
-http://xblast.sf.net/

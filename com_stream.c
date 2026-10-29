@@ -37,6 +37,7 @@ ReadStream (XBComm * comm)
 	assert (NULL != stream);
 	/* get file descriptor for debug output */
 	fd = Socket_Fd (stream->comm.socket);
+	(void) fd;
 	/* read data into queue */
 	result = Net_Receive (stream->rcvQueue, stream->comm.socket);
 	if (stream->prepFinish) {
@@ -102,6 +103,7 @@ WriteStream (XBComm * comm)
 	assert (NULL != stream);
 	/* get file descriptor for debug output */
 	fd = Socket_Fd (stream->comm.socket);
+	(void) fd;
 	/* send top element of send queue */
 	result = Net_Send (stream->sndQueue, stream->comm.socket);
 	switch (result) {
