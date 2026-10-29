@@ -158,9 +158,6 @@ CreateMainMenu (void *par)
 	(void)MenuAddHButton (MENU_LEFT, MENU_TOP + 6 * CELL_H, MENU_WIDTH, N_("Start Central"),
 						  ButtonStartCentral, NULL);
 	/* exit game */
-
-	MenuAddLabel1 (10, 79, TITLE_WIDTH + 60, N_("to talk to others go to http://xblast.sf.net/irc/"));
-	MenuAddLabel1 (10, 63, TITLE_WIDTH + 60, N_("visit http://xblast.sf.net/"));
 	MenuSetAbort (MenuAddHButton
 				  (MENU_LEFT, MENU_BOTTOM, MENU_WIDTH, N_("Quit"), ButtonMainQuit, NULL));
 	/* audience */
@@ -420,7 +417,7 @@ DoMenu (XBBool autoCentral)
 	else {
 		DoFade (XBFM_BLACK_OUT, PIXH + SCOREH);
 	}
-	/* that´s all */
+	/* thatï¿½s all */
 	return result ? GetHostType () : XBPH_None;
 }								/* DoMenu */
 

@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = foreign
+
 if SDL
 
 sdl_files=sdl_common.h sdl_event.h  sdl_config.h  sdl_image.h sdl_keysym.h\
@@ -101,6 +103,10 @@ install-data-local:
 	  $(mkinstalldirs) $(DESTDIR)$(game_datadir)/ ; \
 	  $(mkinstalldirs) $(DESTDIR)$(game_datadir)/sounds; \
 	  cp -r $(srcdir)/sounds/* $(DESTDIR)$(game_datadir)/sounds;\
+	fi; \
+	if test -f $(srcdir)/Vera.ttf; then \
+	  $(mkinstalldirs) $(DESTDIR)$(game_datadir); \
+	  $(INSTALL_DATA) $(srcdir)/Vera.ttf $(DESTDIR)$(game_datadir)/Vera.ttf; \
 	fi;
 
 indent:

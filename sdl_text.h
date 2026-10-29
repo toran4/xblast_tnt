@@ -24,6 +24,7 @@
 #define XBLAST_SDL_COLOR_TEXT_H
 
 extern XBBool InitFonts (void);
+extern void FinishFonts (void);
 extern Uint32 getpixel (SDL_Surface * surface, int x, int y);
 extern void putpixel (SDL_Surface * surface, int x, int y, Uint32 pixel);
 

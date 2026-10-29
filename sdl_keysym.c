@@ -30,28 +30,29 @@
  */
 typedef struct
 {
-	SDLKey code;
+	SDL_Keycode code;
 	const char *name;
 } KeyNameTable;
 
 typedef struct
 {
 	XBAtom atom;
-	SDLKey code;
+	SDL_Keycode code;
 } AtomCodeTable;
 
 /*
  * local variables
  */
 static int numKeys = 0;
+static int numCodes = 0;
 static AtomCodeTable *atomTable = NULL;
 static AtomCodeTable *codeTable = NULL;
 static KeyNameTable keyTable[] = {
 	{SDLK_BACKSPACE, "BackSpace"},
 	{SDLK_TAB, "Tab"},
 	{SDLK_RETURN, "Return"},
-	{KMOD_SHIFT, "Shift"},
-	{KMOD_CTRL, "Control"},
+	{SDLK_LSHIFT, "Shift"},
+	{SDLK_LCTRL, "Control"},
 	{SDLK_PAUSE, "Pause"},
 	{SDLK_CAPSLOCK, "Caps_Lock"},
 	{SDLK_ESCAPE, "Escape"},
@@ -64,7 +65,7 @@ static KeyNameTable keyTable[] = {
 	{SDLK_UP, "Up"},
 	{SDLK_RIGHT, "Right"},
 	{SDLK_DOWN, "Down"},
-	{SDLK_PRINT, "Print"},
+	{SDLK_PRINTSCREEN, "Print"},
 	{SDLK_INSERT, "Insert"},
 	{SDLK_DELETE, "Delete"},
 	{SDLK_0, "0"},
@@ -77,68 +78,68 @@ static KeyNameTable keyTable[] = {
 	{SDLK_7, "7"},
 	{SDLK_8, "8"},
 	{SDLK_9, "9"},
-	{SDLK_a, "A"},
-	{SDLK_b, "B"},
-	{SDLK_c, "C"},
-	{SDLK_d, "D"},
-	{SDLK_e, "E"},
-	{SDLK_f, "F"},
-	{SDLK_g, "G"},
-	{SDLK_h, "H"},
-	{SDLK_i, "I"},
-	{SDLK_k, "J"},
-	{SDLK_k, "K"},
-	{SDLK_l, "L"},
-	{SDLK_m, "M"},
-	{SDLK_n, "N"},
-	{SDLK_o, "O"},
-	{SDLK_p, "P"},
-	{SDLK_q, "Q"},
-	{SDLK_r, "R"},
-	{SDLK_s, "S"},
-	{SDLK_t, "T"},
-	{SDLK_u, "U"},
-	{SDLK_v, "V"},
-	{SDLK_w, "W"},
-	{SDLK_x, "X"},
-	{SDLK_y, "Y"},
-	{SDLK_z, "Z"},
-	{SDLK_a, "a"},
-	{SDLK_b, "b"},
-	{SDLK_c, "c"},
-	{SDLK_d, "d"},
-	{SDLK_e, "e"},
-	{SDLK_f, "f"},
-	{SDLK_g, "g"},
-	{SDLK_h, "h"},
-	{SDLK_i, "i"},
-	{SDLK_k, "j"},
-	{SDLK_k, "k"},
-	{SDLK_l, "l"},
-	{SDLK_m, "m"},
-	{SDLK_n, "n"},
-	{SDLK_o, "o"},
-	{SDLK_p, "p"},
-	{SDLK_q, "q"},
-	{SDLK_r, "r"},
-	{SDLK_s, "s"},
-	{SDLK_t, "t"},
-	{SDLK_u, "u"},
-	{SDLK_v, "v"},
-	{SDLK_w, "w"},
-	{SDLK_x, "x"},
-	{SDLK_y, "y"},
-	{SDLK_z, "z"},
-	{SDLK_KP0, "KP_0"},
-	{SDLK_KP1, "KP_1"},
-	{SDLK_KP2, "KP_2"},
-	{SDLK_KP3, "KP_3"},
-	{SDLK_KP4, "KP_4"},
-	{SDLK_KP5, "KP_5"},
-	{SDLK_KP6, "KP_6"},
-	{SDLK_KP7, "KP_7"},
-	{SDLK_KP8, "KP_8"},
-	{SDLK_KP9, "KP_9"},
+	{SDLK_A, "A"},
+	{SDLK_B, "B"},
+	{SDLK_C, "C"},
+	{SDLK_D, "D"},
+	{SDLK_E, "E"},
+	{SDLK_F, "F"},
+	{SDLK_G, "G"},
+	{SDLK_H, "H"},
+	{SDLK_I, "I"},
+	{SDLK_J, "J"},
+	{SDLK_K, "K"},
+	{SDLK_L, "L"},
+	{SDLK_M, "M"},
+	{SDLK_N, "N"},
+	{SDLK_O, "O"},
+	{SDLK_P, "P"},
+	{SDLK_Q, "Q"},
+	{SDLK_R, "R"},
+	{SDLK_S, "S"},
+	{SDLK_T, "T"},
+	{SDLK_U, "U"},
+	{SDLK_V, "V"},
+	{SDLK_W, "W"},
+	{SDLK_X, "X"},
+	{SDLK_Y, "Y"},
+	{SDLK_Z, "Z"},
+	{SDLK_A, "a"},
+	{SDLK_B, "b"},
+	{SDLK_C, "c"},
+	{SDLK_D, "d"},
+	{SDLK_E, "e"},
+	{SDLK_F, "f"},
+	{SDLK_G, "g"},
+	{SDLK_H, "h"},
+	{SDLK_I, "i"},
+	{SDLK_J, "j"},
+	{SDLK_K, "k"},
+	{SDLK_L, "l"},
+	{SDLK_M, "m"},
+	{SDLK_N, "n"},
+	{SDLK_O, "o"},
+	{SDLK_P, "p"},
+	{SDLK_Q, "q"},
+	{SDLK_R, "r"},
+	{SDLK_S, "s"},
+	{SDLK_T, "t"},
+	{SDLK_U, "u"},
+	{SDLK_V, "v"},
+	{SDLK_W, "w"},
+	{SDLK_X, "x"},
+	{SDLK_Y, "y"},
+	{SDLK_Z, "z"},
+	{SDLK_KP_0, "KP_0"},
+	{SDLK_KP_1, "KP_1"},
+	{SDLK_KP_2, "KP_2"},
+	{SDLK_KP_3, "KP_3"},
+	{SDLK_KP_4, "KP_4"},
+	{SDLK_KP_5, "KP_5"},
+	{SDLK_KP_6, "KP_6"},
+	{SDLK_KP_7, "KP_7"},
+	{SDLK_KP_8, "KP_8"},
+	{SDLK_KP_9, "KP_9"},
 	{SDLK_KP_MULTIPLY, "KP_Multiply"},
 	{SDLK_KP_PLUS, "KP_Add"},
 	{SDLK_KP_MINUS, "KP_Subtract"},
@@ -182,6 +183,23 @@ CompareByAtom (const void *a, const void *b)
 }								/* CompareByAtom */
 
 /*
+ * normalize right-hand modifier keys to their left-hand counterparts,
+ * since the key name table only has one "Shift" and one "Control"
+ */
+SDL_Keycode
+NormalizeKey (SDL_Keycode code)
+{
+	switch (code) {
+	case SDLK_RSHIFT:
+		return SDLK_LSHIFT;
+	case SDLK_RCTRL:
+		return SDLK_LCTRL;
+	default:
+		return code;
+	}
+}								/* NormalizeKey */
+
+/*
  * init keysyms
  */
 XBBool
@@ -197,15 +215,35 @@ InitKeysym (void)
 	assert (NULL != atomTable);
 	codeTable = calloc (numKeys, sizeof (AtomCodeTable));
 	assert (NULL != codeTable);
-	/* fill tables */
+	/* fill the atom table with all names, so that both "A" and "a" can be
+	   parsed when reading a configuration */
 	for (i = 0; i < numKeys; i++) {
 		XBAtom atom = GUI_StringToAtom (keyTable[i].name);
-		atomTable[i].code = codeTable[i].code = keyTable[i].code;
-		atomTable[i].atom = codeTable[i].atom = atom;
+		atomTable[i].code = NormalizeKey (keyTable[i].code);
+		atomTable[i].atom = atom;
 	}
-	/* sort tables */
 	qsort (atomTable, numKeys, sizeof (AtomCodeTable), CompareByAtom);
-	qsort (codeTable, numKeys, sizeof (AtomCodeTable), CompareByCode);
+	/* fill the code table without duplicate keycodes: SDL uses the same
+	   code for "A" and "a" (and NormalizeKey() maps left and right
+	   modifiers together), so the first name in keyTable is the
+	   canonical one for a key */
+	numCodes = 0;
+	for (i = 0; i < numKeys; i++) {
+		SDL_Keycode code = NormalizeKey (keyTable[i].code);
+		int j;
+
+		for (j = 0; j < numCodes; j++) {
+			if (codeTable[j].code == code) {
+				break;
+			}
+		}
+		if (j == numCodes) {
+			codeTable[numCodes].code = code;
+			codeTable[numCodes].atom = GUI_StringToAtom (keyTable[i].name);
+			numCodes++;
+		}
+	}
+	qsort (codeTable, numCodes, sizeof (AtomCodeTable), CompareByCode);
 	/* that's all */
 	return XBTrue;
 }								/* InitKeysym */
@@ -224,12 +262,14 @@ FinishKeysym (void)
 		free (codeTable);
 		codeTable = NULL;
 	}
+	numKeys = 0;
+	numCodes = 0;
 }								/* FinishKeysym */
 
 /*
  * convert string to keycode
  */
-SDLKey
+SDL_Keycode
 StringToVirtualKey (const char *name)
 {
 	AtomCodeTable key;
@@ -249,20 +289,20 @@ StringToVirtualKey (const char *name)
  * convert keycode to string
  */
 XBAtom
-VirtualKeyToAtom (SDLKey code)
+VirtualKeyToAtom (SDL_Keycode code)
 {
 	AtomCodeTable key;
 	AtomCodeTable *result;
 	XBAtom atom;
 
-	key.code = code;
-	result = bsearch (&key, codeTable, numKeys, sizeof (AtomCodeTable), CompareByCode);
+	key.code = NormalizeKey (code);
+	result = bsearch (&key, codeTable, numCodes, sizeof (AtomCodeTable), CompareByCode);
 	if (NULL == result) {
 		return ATOM_INVALID;
 	}
 	atom = result->atom;
 	return atom;
-}								/* StringToVirtualKey */
+}								/* VirtualKeyToAtom */
 
 /*
  * end of file w32_keysym.c

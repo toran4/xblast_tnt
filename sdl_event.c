@@ -42,7 +42,7 @@ typedef enum
 
 typedef struct
 {
-	SDLKey key;
+	SDL_Keycode key;
 	XBEventCode code;
 	int value;
 } GameKeyEvent;
@@ -107,9 +107,9 @@ GUI_SetMouseMode (XBBool enable)
 void GUI_ShowCursor(XBBool enable)
 {
 	if (enable) {
-		SDL_ShowCursor(SDL_ENABLE);
+		SDL_ShowCursor();
 	} else {
-		SDL_ShowCursor(SDL_DISABLE);
+		SDL_HideCursor();
 	}
 }
 
@@ -119,7 +119,7 @@ void GUI_ShowCursor(XBBool enable)
 static int
 CompareKeyCode (const void *a, const void *b)
 {
-	return (*(const SDLKey *) a) - (*(const SDLKey *) b);
+	return (*(const SDL_Keycode *) a) - (*(const SDL_Keycode *) b);
 }								/* CompareKeyCode */
 
 /*
@@ -132,7 +132,7 @@ CreateGameKeyTable (const CFGKeyTable * init, int *nelem)
 	GameKeyList *list = NULL;
 	GameKeyList *elem;
 	GameKeyEvent *table = NULL;
-	SDLKey keySym;
+	SDL_Keycode keySym;
 	int i;
 
 	assert (nelem != NULL);
@@ -361,10 +361,10 @@ GUI_SubtractPollFunction (XBPollFunction func)
 	}
 }								/* GUI_SubtractPollFunction */
 
-static GameKeyEvent *
-LookupKeyTable (const SDLKey keyCode, const int numKey, const GameKeyEvent * keyTable)
+static const GameKeyEvent *
+LookupKeyTable (const SDL_Keycode keyCode, const int numKey, const GameKeyEvent * keyTable)
 {
-	return bsearch (&keyCode, keyTable, numKey, sizeof (GameKeyEvent), CompareKeyCode);
+	return (const GameKeyEvent *) bsearch (&keyCode, keyTable, numKey, sizeof (GameKeyEvent), CompareKeyCode);
 }
 
 /*
@@ -373,11 +373,11 @@ LookupKeyTable (const SDLKey keyCode, const int numKey, const GameKeyEvent * key
 static void
 HandleMenuKey (SDL_KeyboardEvent * KbEvent)
 {
-	SDLKey keyCode;
+	SDL_Keycode keyCode;
 
-	keyCode = KbEvent->keysym.sym;
+	keyCode = KbEvent->key;
 	if (!HandleChatKey (KbEvent)) {
-		GameKeyEvent *key;
+		const GameKeyEvent *key;
 
 		key = LookupKeyTable (keyCode, numKeyMenu, keyMenuTable);
 		if (key) {
@@ -394,11 +394,11 @@ HandleXBlastKey (SDL_KeyboardEvent * KbEvent)
 {
 	GameKeyEvent *key_table;
 	int num_key;
-	SDLKey keyCode;
-	GameKeyEvent *key;
+	SDL_Keycode keyCode;
+	const GameKeyEvent *key;
 
 	/* which table to loopkup */
-	if (KbEvent->state == SDL_PRESSED) {
+	if (KbEvent->down) {
 		key_table = keyPressTable;
 		num_key = numKeyPress;
 		if (HandleChatKey (KbEvent)) {
@@ -410,7 +410,7 @@ HandleXBlastKey (SDL_KeyboardEvent * KbEvent)
 		num_key = numKeyRelease;
 	}
 	/* search for key */
-	keyCode = KbEvent->keysym.sym;
+	keyCode = KbEvent->key;
 	key = LookupKeyTable (keyCode, num_key, key_table);
 	if (key) {
 		QueueEventValue (key->code, key->value);
@@ -423,10 +423,10 @@ HandleXBlastKey (SDL_KeyboardEvent * KbEvent)
 static XBBool
 HandleChatKey (SDL_KeyboardEvent * KbEvent)
 {
-	SDLKey keyCode;
-	GameKeyEvent *key;
+	SDL_Keycode keyCode;
+	const GameKeyEvent *key;
 
-	keyCode = KbEvent->keysym.sym;
+	keyCode = KbEvent->key;
 	key = LookupKeyTable (keyCode, numKeyChat, keyChatTable);
 	if (key && Chat_isListening ()) {
 		if ((keyCode == SDLK_BACKSPACE || keyCode == SDLK_ESCAPE || keyCode == SDLK_RETURN)
@@ -453,8 +453,8 @@ HandleChatKey (SDL_KeyboardEvent * KbEvent)
 static void
 HandleAsciiKey (SDL_KeyboardEvent * KbEvent)
 {
-	SDLKey keyCode;
-	keyCode = KbEvent->keysym.sym;
+	SDL_Keycode keyCode;
+	keyCode = KbEvent->key;
 
 	if (isprint (keyCode)) {
 		/* printable character */
@@ -485,8 +485,8 @@ HandleAsciiKey (SDL_KeyboardEvent * KbEvent)
 static void
 HandleKeysymKey (SDL_KeyboardEvent * KbEvent)
 {
-	SDLKey keyCode;
-	keyCode = KbEvent->keysym.sym;
+	SDL_Keycode keyCode;
+	keyCode = KbEvent->key;
 	if (keyCode == SDLK_ESCAPE) {
 		QueueEventAtom (XBE_KEYSYM, ATOM_INVALID);
 	}
@@ -499,13 +499,33 @@ HandleKeysymKey (SDL_KeyboardEvent * KbEvent)
 }
 
 /*
+ * queue a mouse event, converting window coordinates to game coordinates
+ */
+static void
+QueueMouseEvent (XBEventCode code, float wx, float wy)
+{
+	int x, y;
+
+	if (GUI_WindowToScreen (wx, wy, &x, &y)) {
+		QueueEventPos (code, (short)(x / BASE_X), (short)(y / BASE_Y));
+	}
+}								/* QueueMouseEvent */
+
+/*
  * Handle SDL Events
  */
 static void
 HandleSDLEvent (SDL_Event * event)
 {
+	/* the key tables only know the left-hand modifier names */
+	if (SDL_EVENT_KEY_DOWN == event->type || SDL_EVENT_KEY_UP == event->type) {
+		event->key.key = NormalizeKey (event->key.key);
+	}
 	switch (event->type) {
-	case SDL_KEYDOWN:
+	case SDL_EVENT_KEY_DOWN:
+		if (GUI_HandleHotKey (&event->key)) {
+			break;
+		}
 		switch (keyboardMode) {
 		case KB_CHAT:
 			(void)HandleChatKey (&event->key);
@@ -527,7 +547,7 @@ HandleSDLEvent (SDL_Event * event)
 		}
 		break;
 
-	case SDL_KEYUP:
+	case SDL_EVENT_KEY_UP:
 		switch (keyboardMode) {
 		case KB_XBLAST:
 			HandleXBlastKey (&event->key);
@@ -537,42 +557,47 @@ HandleSDLEvent (SDL_Event * event)
 		}
 		break;
 
-	case SDL_MOUSEMOTION:
-		QueueEventPos (XBE_MOUSE_MOVE, event->motion.x / BASE_X, event->motion.y / BASE_Y);
+	case SDL_EVENT_MOUSE_MOTION:
+		QueueMouseEvent (XBE_MOUSE_MOVE, event->motion.x, event->motion.y);
 		break;
 
-	case SDL_MOUSEBUTTONUP:
+	case SDL_EVENT_MOUSE_BUTTON_UP:
 		break;
 
-	case SDL_MOUSEBUTTONDOWN:
+	case SDL_EVENT_MOUSE_BUTTON_DOWN:
 		switch (event->button.button) {
 		case SDL_BUTTON_LEFT:
-			QueueEventPos (XBE_MOUSE_1, event->button.x / BASE_X, event->button.y / BASE_Y);
+			QueueMouseEvent (XBE_MOUSE_1, event->button.x, event->button.y);
 			break;
 		case SDL_BUTTON_RIGHT:
-			QueueEventPos (XBE_MOUSE_2, event->button.x / BASE_X, event->button.y / BASE_Y);
+			QueueMouseEvent (XBE_MOUSE_2, event->button.x, event->button.y);
 			break;
 		case SDL_BUTTON_MIDDLE:
-			QueueEventPos (XBE_MOUSE_3, event->button.x / BASE_X, event->button.y / BASE_Y);
+			QueueMouseEvent (XBE_MOUSE_3, event->button.x, event->button.y);
 			break;
 		default:
 			break;
 		}
 		break;
 
-	case SDL_JOYAXISMOTION:
-	case SDL_JOYBALLMOTION:
-	case SDL_JOYHATMOTION:
-	case SDL_JOYBUTTONDOWN:
-	case SDL_JOYBUTTONUP:
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+	case SDL_EVENT_JOYSTICK_BALL_MOTION:
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+	case SDL_EVENT_JOYSTICK_BUTTON_UP:
 		if (keyboardMode == KB_MENU)
 			HandleMenuJoystick (event);
 		else
 			HandleXBlastJoystick (event);
 		break;
 
-	case SDL_QUIT:
-		exit (1);
+	case SDL_EVENT_QUIT:
+		GUI_Quit ();
+		break;
+
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		GUI_Quit ();
+		break;
 
 	default:
 		GUI_FlushPixmap (XBFalse);

@@ -1,5 +1,23 @@
-
-/* Test out the window manager interaction functions */
+/*
+ * file sdl_init.c - SDL3 video/display initialisation
+ *
+ * Program XBLAST 
+ * (C) by Oliver Vogel (e-mail: m.vogel@ndh.net)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation; either version 2; or (at your option)
+ * any later version
+ *
+ * This program is distributed in the hope that it will be entertaining,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILTY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #include "xblast.h"
 
@@ -12,354 +30,448 @@
 #include "sdl_text.h"
 #include "sdl_tile.h"
 
-static Uint8 video_bpp;
-static Uint32 video_flags = 0;
+/*
+ * local variables
+ */
+static XBQuitFunction quitFunc = NULL;
+static XBBool warnedPresent = XBFalse;
 
-#ifdef unused
-static SDL_Surface *
-LoadIconSurface (char *file, Uint8 ** maskp)
+/*
+ * compute where the back buffer is shown inside the window: scaled to fit,
+ * keeping the aspect ratio and centered.
+ */
+void
+GUI_GetScreenDestination (const SDL_Surface * winSurface, SDL_Rect * dst)
 {
-	SDL_Surface *icon;
-	Uint8 *pixels;
-	Uint8 *mask;
-	int mlen, i, j;
-
-	*maskp = NULL;
-
-	/* Load the icon surface */
-	icon = SDL_LoadBMP (file);
-	if (icon == NULL) {
-		fprintf (stderr, "Couldn't load %s: %s\n", file, SDL_GetError ());
-		return (NULL);
+	if (winSurface->w <= 0 || winSurface->h <= 0 || screen->w <= 0 || screen->h <= 0) {
+		dst->x = dst->y = dst->w = dst->h = 0;
+		return;
 	}
-
-	/* Check width and height 
-	   if ( (icon->w%8) != 0 ) {
-	   fprintf(stderr, "Icon width must be a multiple of 8!\n");
-	   SDL_FreeSurface(icon);
-	   return(NULL);
-	   }
-	 */
-
-	if (icon->format->palette == NULL) {
-		fprintf (stderr, "Icon must have a palette!\n");
-		SDL_FreeSurface (icon);
-		return (NULL);
+	if (winSurface->w * screen->h <= winSurface->h * screen->w) {
+		dst->w = winSurface->w;
+		dst->h = screen->h * dst->w / screen->w;
 	}
-
-	/* Set the colorkey */
-	SDL_SetColorKey (icon, SDL_SRCCOLORKEY, *((Uint8 *) icon->pixels));
-
-	/* Create the mask */
-	pixels = (Uint8 *) icon->pixels;
-	Dbg_Out ("Transparent pixel: (%d,%d,%d)\n",
-			icon->format->palette->colors[*pixels].r,
-			icon->format->palette->colors[*pixels].g, icon->format->palette->colors[*pixels].b);
-	mlen = (icon->w * icon->h + 7) / 8;
-	mask = (Uint8 *) malloc (mlen);
-	if (mask == NULL) {
-		fprintf (stderr, "Out of memory!\n");
-		SDL_FreeSurface (icon);
-		return (NULL);
+	else {
+		dst->h = winSurface->h;
+		dst->w = screen->w * dst->h / screen->h;
 	}
-	memset (mask, 0, mlen);
-	for (i = 0; i < icon->h; i++)
-		for (j = 0; j < icon->w; j++) {
-			int pindex = i * icon->pitch + j;
-			int mindex = i * icon->w + j;
-			if (pixels[pindex] != *pixels)
-				mask[mindex >> 3] |= 1 << (7 - (mindex & 7));
+	dst->x = (winSurface->w - dst->w) / 2;
+	dst->y = (winSurface->h - dst->h) / 2;
+}								/* GetScreenDestination */
+
+/*
+ * draw a part of the backbuffer to the window.
+ *
+ * The game keeps drawing into the "screen" surface; it is copied (and, in
+ * fullscreen modes, scaled to the window size) on every flush. If rect is
+ * not NULL only that part of the backbuffer is presented, which is needed
+ * for the fade in effect.
+ */
+void
+GUI_PresentScreenRect (const SDL_Rect * rect)
+{
+	SDL_Surface *winSurface;
+	SDL_Rect dst, part, src;
+
+	winSurface = SDL_GetWindowSurface (sdlWindow);
+	if (NULL == winSurface || NULL == screen) {
+		if (!warnedPresent) {
+			fprintf (stderr, "sdl_init: SDL_GetWindowSurface failed: %s\n", SDL_GetError ());
+			warnedPresent = XBTrue;
 		}
-	*maskp = mask;
-	return (icon);
-}
-#endif
+		return;
+	}
+	GUI_GetScreenDestination (winSurface, &dst);
+	if (dst.w <= 0 || dst.h <= 0) {
+		return;
+	}
 
+	if (NULL == rect) {
+		if (winSurface->w == screen->w && winSurface->h == screen->h) {
+			SDL_BlitSurface (screen, NULL, winSurface, NULL);
+		}
+		else {
+			SDL_FillSurfaceRect (winSurface, NULL, SDL_MapSurfaceRGB (winSurface, 0, 0, 0));
+			SDL_BlitSurfaceScaled (screen, NULL, winSurface, &dst, SDL_SCALEMODE_NEAREST);
+		}
+		if (!SDL_UpdateWindowSurface (sdlWindow)) {
+			if (!warnedPresent) {
+				fprintf (stderr, "sdl_init: SDL_UpdateWindowSurface failed: %s\n", SDL_GetError ());
+				warnedPresent = XBTrue;
+			}
+		}
+		return;
+	}
+
+	/* clip the source rectangle to the backbuffer */
+	src = *rect;
+	if (src.x < 0) {
+		src.w += src.x;
+		src.x = 0;
+	}
+	if (src.y < 0) {
+		src.h += src.y;
+		src.y = 0;
+	}
+	if (src.x + src.w > screen->w) {
+		src.w = screen->w - src.x;
+	}
+	if (src.y + src.h > screen->h) {
+		src.h = screen->h - src.y;
+	}
+	if (src.w <= 0 || src.h <= 0) {
+		return;
+	}
+
+	/* map it to the corresponding part of the window, rounding up so that
+	   neighbouring bands don't leave gaps */
+	part.x = dst.x + src.x * dst.w / screen->w;
+	part.y = dst.y + src.y * dst.h / screen->h;
+	part.w = ((src.x + src.w) * dst.w + screen->w - 1) / screen->w
+		- src.x * dst.w / screen->w;
+	part.h = ((src.y + src.h) * dst.h + screen->h - 1) / screen->h
+		- src.y * dst.h / screen->h;
+	if (part.w < 1) {
+		part.w = 1;
+	}
+	if (part.h < 1) {
+		part.h = 1;
+	}
+	/* rounding up may reach one pixel into the letterbox */
+	if (part.x + part.w > dst.x + dst.w) {
+		part.w = dst.x + dst.w - part.x;
+	}
+	if (part.y + part.h > dst.y + dst.h) {
+		part.h = dst.y + dst.h - part.y;
+	}
+	SDL_BlitSurfaceScaled (screen, &src, winSurface, &part, SDL_SCALEMODE_NEAREST);
+	if (!SDL_UpdateWindowSurfaceRects (sdlWindow, &part, 1)) {
+		if (!warnedPresent) {
+			fprintf (stderr, "sdl_init: SDL_UpdateWindowSurfaceRects failed: %s\n", SDL_GetError ());
+			warnedPresent = XBTrue;
+		}
+	}
+}								/* GUI_PresentScreenRect */
+
+/*
+ * draw the whole backbuffer to the window
+ */
+void
+GUI_PresentScreen (void)
+{
+	GUI_PresentScreenRect (NULL);
+}								/* GUI_PresentScreen */
+
+/*
+ * convert window coordinates to backbuffer coordinates.
+ *
+ * Returns XBFalse if the point is not inside the (possibly letterboxed)
+ * game area, so that clicks in the black bars are ignored.
+ */
+XBBool
+GUI_WindowToScreen (float wx, float wy, int *sx, int *sy)
+{
+	SDL_Surface *winSurface;
+	SDL_Rect dst;
+	int x, y;
+
+	if (NULL == screen || NULL == sdlWindow) {
+		return XBFalse;
+	}
+	winSurface = SDL_GetWindowSurface (sdlWindow);
+	if (NULL == winSurface) {
+		return XBFalse;
+	}
+	GUI_GetScreenDestination (winSurface, &dst);
+	if (dst.w <= 0 || dst.h <= 0) {
+		return XBFalse;
+	}
+	x = (int)wx - dst.x;
+	y = (int)wy - dst.y;
+	if (x < 0 || y < 0 || x >= dst.w || y >= dst.h) {
+		return XBFalse;
+	}
+	*sx = x * screen->w / dst.w;
+	*sy = y * screen->h / dst.h;
+	return XBTrue;
+}								/* GUI_WindowToScreen */
+
+/*
+ * apply video setup from configuration
+ */
 void
 SetupVideo (CFGVideoSetup * video)
 {
-	SDL_Surface *surface;
+	XBBool isFull;
 
-	surface = SDL_GetVideoSurface ();
+	isFull = (SDL_GetWindowFlags (sdlWindow) & SDL_WINDOW_FULLSCREEN) ? XBTrue : XBFalse;
 
-	if (((surface->flags & SDL_FULLSCREEN) && video->mode == XBVM_Windowed) ||
-		((surface->flags & SDL_FULLSCREEN) == 0 && video->mode == XBVM_Full))
-		SDL_WM_ToggleFullScreen (screen);
-}
+	if ((isFull && video->mode == XBVM_Windowed) ||
+		(!isFull && video->mode == XBVM_Full)) {
+		if (!SDL_SetWindowFullscreen (sdlWindow, video->mode == XBVM_Full)) {
+			fprintf (stderr, "sdl_init: SDL_SetWindowFullscreen failed: %s\n", SDL_GetError ());
+		}
+		else {
+			SDL_SyncWindow (sdlWindow);
+		}
+	}
+}								/* SetupVideo */
 
 static void
 HotKey_ToggleFullScreen (void)
 {
-	SDL_Surface *screen;
+	XBBool isFull;
 
-	screen = SDL_GetVideoSurface ();
-	if (SDL_WM_ToggleFullScreen (screen)) {
-		Dbg_Out ("Toggled fullscreen mode - now %s\n",
-				(screen->flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed");
+	isFull = (SDL_GetWindowFlags (sdlWindow) & SDL_WINDOW_FULLSCREEN) ? XBTrue : XBFalse;
+	if (SDL_SetWindowFullscreen (sdlWindow, !isFull)) {
+		SDL_SyncWindow (sdlWindow);
+		Dbg_Out ("Toggled fullscreen mode - now %s\n", isFull ? "windowed" : "fullscreen");
 	}
 	else {
-		Dbg_Out ("Unable to toggle fullscreen mode\n");
+		fprintf (stderr, "sdl_init: SDL_SetWindowFullscreen failed: %s\n", SDL_GetError ());
 	}
-}
+}								/* HotKey_ToggleFullScreen */
 
 static void
 HotKey_ToggleGrab (void)
 {
-	SDL_GrabMode mode;
+	XBBool grab;
 
-	Dbg_Out ("Ctrl-G: toggling input grab!\n");
-	mode = SDL_WM_GrabInput (SDL_GRAB_QUERY);
-	if (mode == SDL_GRAB_ON) {
-		Dbg_Out ("Grab was on\n");
+	grab = SDL_GetWindowMouseGrab (sdlWindow);
+	if (!SDL_SetWindowMouseGrab (sdlWindow, !grab) ||
+	    !SDL_SetWindowKeyboardGrab (sdlWindow, !grab)) {
+		fprintf (stderr, "sdl_init: unable to change input grab: %s\n", SDL_GetError ());
 	}
 	else {
-		Dbg_Out ("Grab was off\n");
+		Dbg_Out ("Ctrl-G: grab is now %s\n", grab ? "off" : "on");
 	}
-	mode = SDL_WM_GrabInput (mode ? SDL_GRAB_OFF : SDL_GRAB_ON);
-	if (mode == SDL_GRAB_ON) {
-		Dbg_Out ("Grab is now on\n");
-	}
-	else {
-		Dbg_Out ("Grab is now off\n");
-	}
-}
+}								/* HotKey_ToggleGrab */
 
 static void
 HotKey_Iconify (void)
 {
 	Dbg_Out ("Ctrl-Z: iconifying window!\n");
-	SDL_WM_IconifyWindow ();
-}
+	if (!SDL_MinimizeWindow (sdlWindow)) {
+		fprintf (stderr, "sdl_init: SDL_MinimizeWindow failed: %s\n", SDL_GetError ());
+	}
+}								/* HotKey_Iconify */
 
-static void
-HotKey_Quit (void)
+/*
+ * quit through the callback registered by the main program, if any
+ */
+void
+GUI_Quit (void)
 {
-	SDL_Event event;
+	GUI_Finish ();
+	if (NULL != quitFunc) {
+		(*quitFunc) ();
+	}
+	exit (0);
+}								/* GUI_Quit */
 
-	Dbg_Out ("Posting internal quit request\n");
-	event.type = SDL_USEREVENT;
-	SDL_PushEvent (&event);
-}
-
-static int
-FilterEvents (const SDL_Event * event)
+/*
+ * handle global hot keys. Returns XBTrue if the key has been consumed.
+ *
+ * This must run on the main thread (unlike the event filter), since it
+ * changes window state.
+ */
+XBBool
+GUI_HandleHotKey (const SDL_KeyboardEvent * key)
 {
+	if (SDLK_ESCAPE == key->key) {
+		GUI_Quit ();
+		return XBTrue;
+	}
+	if (key->mod & SDL_KMOD_CTRL) {
+		if (SDLK_G == key->key) {
+			HotKey_ToggleGrab ();
+			return XBTrue;
+		}
+		if (SDLK_Z == key->key) {
+			HotKey_Iconify ();
+			return XBTrue;
+		}
+	}
+	if ((key->mod & SDL_KMOD_ALT) && (SDLK_RETURN == key->key)) {
+		HotKey_ToggleFullScreen ();
+		return XBTrue;
+	}
+	return XBFalse;
+}								/* GUI_HandleHotKey */
+
+static bool
+FilterEvents (void *userdata, SDL_Event * event)
+{
+	(void) userdata;
+
 	switch (event->type) {
 
-	case SDL_ACTIVEEVENT:
-		/* See what happened */
-		Dbg_Out ("App %s ", event->active.gain ? "gained" : "lost");
-		if (event->active.state & SDL_APPACTIVE)
-			Dbg_Out ("active ");
-		if (event->active.state & SDL_APPMOUSEFOCUS)
-			Dbg_Out ("mouse ");
-		if (event->active.state & SDL_APPINPUTFOCUS)
-			Dbg_Out ("input ");
-		Dbg_Out ("focus\n");
+	case SDL_EVENT_WINDOW_EXPOSED:
+	case SDL_EVENT_WINDOW_RESIZED:
+	case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		/* pass through, forces a redraw (close requests are handled in
+		   HandleSDLEvent() on the main thread) */
+		return true;
 
-		/* See if we are iconified or restored */
-		if (event->active.state & SDL_APPACTIVE) {
-			Dbg_Out ("App has been %s\n", event->active.gain ? "restored" : "iconified");
-		}
-		return (0);
+	case SDL_EVENT_WINDOW_FOCUS_GAINED:
+	case SDL_EVENT_WINDOW_FOCUS_LOST:
+		/* drop, the game doesn't care */
+		return false;
 
-		/* Pass various input events */
-	case SDL_MOUSEBUTTONDOWN:
-	case SDL_MOUSEBUTTONUP:
-	case SDL_MOUSEMOTION:
-	case SDL_KEYUP:
-		return (1);
+		/* Pass various input events. The hot keys are handled later in
+		   HandleSDLEvent(), on the main thread. */
+	case SDL_EVENT_MOUSE_BUTTON_DOWN:
+	case SDL_EVENT_MOUSE_BUTTON_UP:
+	case SDL_EVENT_MOUSE_MOTION:
+	case SDL_EVENT_KEY_DOWN:
+	case SDL_EVENT_KEY_UP:
+		return true;
 
-	case SDL_KEYDOWN:
-		if (event->key.keysym.sym == SDLK_ESCAPE) {
-			HotKey_Quit ();
-			return(1);
-		}
-		if ((event->key.keysym.sym == SDLK_g) && (event->key.keysym.mod & KMOD_CTRL)) {
-			HotKey_ToggleGrab ();
-			return(0);
-		}
-		if ((event->key.keysym.sym == SDLK_z) && (event->key.keysym.mod & KMOD_CTRL)) {
-			HotKey_Iconify ();
-			return(0);
-		}
-		if ((event->key.keysym.sym == SDLK_RETURN) && (event->key.keysym.mod & KMOD_ALT)) {
-			HotKey_ToggleFullScreen ();
-			return(0);
-		}
-		return (1);
-
-		/* Pass the video resize event through .. */
-	case SDL_VIDEORESIZE:
-		return (1);
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+	case SDL_EVENT_JOYSTICK_BALL_MOTION:
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+	case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		return true;
 
 		/* This is important!  Queue it if we want to quit. */
-	case SDL_QUIT:
+	case SDL_EVENT_QUIT:
 		Dbg_Out ("Quit demanded\n");
-		return (1);
+		return true;
 
 		/* Drop all other events */
 	default:
-		return (0);
+		return false;
 	}
-}
-
-static int
-SetVideoMode (int w, int h)
-{
-	/* screen is a global variable defined in sdl_common.c */
-	screen = SDL_SetVideoMode (w, h, video_bpp, video_flags);
-	if (screen == NULL) {
-		Dbg_Out (stderr, "Couldn't set %dx%dx%d video mode: %s\n",
-				 w, h, video_bpp, SDL_GetError ());
-		return (-1);
-	}
-
-	if (!screen->flags) {
-		Dbg_Out ("No hardware support.\n");
-	}
-
-	Dbg_Out ("Running in %s mode\n", screen->flags & SDL_FULLSCREEN ? "fullscreen" : "windowed");
-
-	return (0);
-}
+}								/* FilterEvents */
 
 static XBBool
 InitDisplay (void)
 {
 	char *title;
-	int parsed;
-	int w, h;
-	const SDL_VideoInfo *videoInfo;
 	CFGVideoSetup video;
+	SDL_WindowFlags windowFlags = 0;
+	SDL_Surface *winSurface;
 
-	if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+	if (!SDL_Init (SDL_INIT_VIDEO)) {
 		fprintf (stderr, "Couldn't initialize SDL: %s\n", SDL_GetError ());
 		exit (1);
 	}
+	/* audio is optional, the sound layer degrades gracefully */
+	if (!SDL_InitSubSystem (SDL_INIT_AUDIO)) {
+		fprintf (stderr, "Warning: no audio device available: %s\n", SDL_GetError ());
+	}
 	atexit (SDL_Quit);
 
-	videoInfo = SDL_GetVideoInfo ();
-	Dbg_Out ("Hardware available:...............................%s\n",
-			videoInfo->hw_available ? "yes" : "no");
-	Dbg_Out ("Window manager_available:.........................%s\n",
-			videoInfo->wm_available ? "yes" : "no");
-	Dbg_Out ("Hardware to hardware blits accelerated?:..........%s\n",
-			videoInfo->blit_hw ? "yes" : "no");
-	Dbg_Out ("Hardware to hardware colorkey blits accelerated?:.%s\n",
-			videoInfo->blit_hw_CC ? "yes" : "no");
-	Dbg_Out ("Hardware to hardware alpha blits accelerated?:....%s\n",
-			videoInfo->blit_hw_A ? "yes" : "no");
-	Dbg_Out ("Software to hardware blits accelerated?:..........%s\n",
-			videoInfo->blit_sw ? "yes" : "no");
-	Dbg_Out ("Software to hardware colorkey blits accelerated?:.%s\n",
-			videoInfo->blit_sw_CC ? "yes" : "no");
-	Dbg_Out ("Software to hardware alpha blits accelerated?:....%s\n",
-			videoInfo->blit_sw_A ? "yes" : "no");
-	Dbg_Out ("Color fills accelerated?:.........................%s\n",
-			videoInfo->blit_fill ? "yes" : "no");
-	Dbg_Out ("Total amount of video memory in Kilobytes:........%d\n", videoInfo->video_mem);
-
-	Dbg_Out ("Display pixel format:\n");
-	Dbg_Out ("  Bits per pixel:.%d\n", videoInfo->vfmt->BitsPerPixel);
-	Dbg_Out ("  Rmask:..........%08x\n", videoInfo->vfmt->Rmask);
-	Dbg_Out ("  Gmask:..........%08x\n", videoInfo->vfmt->Gmask);
-	Dbg_Out ("  Bmask:..........%08x\n", videoInfo->vfmt->Bmask);
-	Dbg_Out ("  Amask:..........%08x\n", videoInfo->vfmt->Amask);
-	Dbg_Out ("  Colorkey:.......%08x\n", videoInfo->vfmt->colorkey);
-	Dbg_Out ("  Alpha:..........%08x\n", videoInfo->vfmt->alpha);
-
-	/* Try Hardware surfaces if available. */
-	video_flags |= (videoInfo->hw_available ? SDL_HWSURFACE : SDL_SWSURFACE);
-	video_flags |= (videoInfo->hw_available ? SDL_DOUBLEBUF : 0);
-	/* RLE encoding increases speed when blitting transparent surfaces. */
-	video_flags |= SDL_RLEACCEL;
-	/* Use current videomode for resolution. This is the idel format. */
-	video_bpp = videoInfo->vfmt->BitsPerPixel;
-
-	/* Check command line arguments */
-	w = PIXW;
-	h = PIXH + SCOREH;
-	parsed = 1;
-
-	/* Set the icon -- this must be done before the first mode set */
-	/*  icon = LoadIconSurface("icon.bmp", &icon_mask);
-	   if ( icon != NULL ) {
-	   SDL_WM_SetIcon(icon, icon_mask);
-	   }
-	   if ( icon_mask != NULL )
-	   free(icon_mask);
-	 */
 	/* Set the title bar */
 	title = "XBlast TNT " VERSION_STRING;
-	SDL_WM_SetCaption (title, "XBlast TNT");
-
-	/* See if it's really set */
-	SDL_WM_GetCaption (&title, NULL);
 
 	if (RetrieveVideoSetup (&video)) {
 		if (video.mode == XBVM_Full) {
-			video_flags |= SDL_FULLSCREEN;
+			windowFlags |= SDL_WINDOW_FULLSCREEN;
 		}
 	}
 
-	/* Initialize the display */
-	if (SetVideoMode (w, h) < 0) {
-		return (1);
+	sdlWindow = SDL_CreateWindow (title, PIXW, PIXH + SCOREH, windowFlags);
+	if (NULL == sdlWindow) {
+		fprintf (stderr, "Couldn't create window: %s\n", SDL_GetError ());
+		return XBFalse;
 	}
 
-	/* Set the color key. Experimental. */
-	/* TODO: Test effects of SDL_SRCCOLORKEY flag */
-	SDL_SetColorKey (screen, SDL_RLEACCEL, SDL_MapRGB (screen->format, 0xFF, 0xFF, 0xFF));
+	winSurface = SDL_GetWindowSurface (sdlWindow);
+	if (NULL == winSurface) {
+		fprintf (stderr, "Couldn't get window surface: %s\n", SDL_GetError ());
+		return XBFalse;
+	}
+
+	/* Create the back buffer all drawing goes to */
+	screen = SDL_CreateSurface (PIXW, PIXH + SCOREH, winSurface->format);
+	if (NULL == screen) {
+		fprintf (stderr, "Couldn't create back buffer: %s\n", SDL_GetError ());
+		return XBFalse;
+	}
 
 	/* Set an event filter. */
-	SDL_SetEventFilter(FilterEvents);
+	SDL_SetEventFilter (FilterEvents, NULL);
 
 	return XBTrue;
-}
+}								/* InitDisplay */
 
 XBBool
 GUI_Init (int argc, char *argv[])
 {
+	(void) argc;
+	(void) argv;
+
 	if (!InitDisplay ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
+	/* joystick support is optional, never abort startup for it */
+	(void)InitJoystick ();
 	/* now setup image loading */
 	/* if (! InitImage () ) {
 	   return XBFalse;
 	   } */
 	if (!InitKeysym ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 	if (!InitEvent ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 	/* now create pixmap for double bufferung */
 	if (!InitPixmap ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 	/* now create pixmap for double bufferung */
 	if (!InitSprites ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 	if (!InitFonts ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 	/* initalisize tile drawing and scoreboard */
 	if (!InitTiles ()) {
+		GUI_Finish ();
 		return XBFalse;
 	}
 
 	return XBTrue;
-}
+}								/* GUI_Init */
 
 void
 GUI_Finish (void)
 {
-
+	FinishSprites ();
+	FinishTiles ();
+	FinishFonts ();
+	FinishPixmap ();
+	FinishJoystick ();
+	FinishEvent ();
+	if (NULL != screen) {
+		SDL_DestroySurface (screen);
+		screen = NULL;
+	}
+	if (NULL != sdlWindow) {
+		SDL_DestroyWindow (sdlWindow);
+		sdlWindow = NULL;
+	}
 }								/* GUI_Finish */
+
 void
 GUI_OnQuit (XBQuitFunction _quitFunc)
 {
+	assert (NULL != _quitFunc);
 
+	quitFunc = _quitFunc;
 }								/* GUI_OnQuit */
+
+/*
+ * end of file sdl_init.c
+ */

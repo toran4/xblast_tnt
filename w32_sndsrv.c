@@ -163,7 +163,7 @@ SoundCheckWaveOut (XBBool stereo)
 /*
  * Callback for audio device
  */
-void PASCAL _export
+void CALLBACK
 WaveProc (HWAVE hWave, UINT msg, unsigned inst, unsigned par1, unsigned par2)
 {
 	/*  assert (hWave == hWaveOut); */
@@ -464,7 +464,7 @@ SoundShutdown ()
 /*
  * thread start function
  */
-DWORD PASCAL _export
+DWORD WINAPI
 SoundThreadStereo (void *par)
 {
 	int i;

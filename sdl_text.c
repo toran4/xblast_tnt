@@ -24,19 +24,14 @@
 #include "xblast.h"
 #include "sdl_common.h"
 
-static const SDL_Color SDL_COLOR_WHITE = { 0xFF, 0xFF, 0xFF };
-static const SDL_Color SDL_COLOR_BLACK = { 0x00, 0x00, 0x00 };
-static const SDL_Color SDL_COLOR_RED = { 0xFF, 0x00, 0x00 };
-static const SDL_Color SDL_COLOR_GREEN = { 0x00, 0xFF, 0x00 };
-static const SDL_Color SDL_COLOR_BLUE = { 0x00, 0x00, 0xFF };
-static const SDL_Color SDL_COLOR_YELLOW = { 0xFF, 0xFF, 0x00 };
-static const SDL_Color SDL_COLOR_MAGENTA = { 0xFF, 0x00, 0xFF };
-static const SDL_Color SDL_COLOR_CYAN = { 0x00, 0xFF, 0xFF };
+static const SDL_Color SDL_COLOR_BLACK = { 0x00, 0x00, 0x00, 0xFF };
+static const SDL_Color SDL_COLOR_YELLOW = { 0xFF, 0xFF, 0x00, 0xFF };
 
 /*
  * local variables
  */
 static TTF_Font *fontStruct[NUM_FONTS];
+static XBBool fontsInitialized = XBFalse;
 static SDL_Surface *bgTextSurface;
 static SDL_Surface *fgTextSurface;
 
@@ -54,19 +49,56 @@ SDL_Surface *RenderOutlineText (TTF_Font * font, const char *text, SDL_Color tex
 static TTF_Font *
 LoadFont (const char *fontName, int fontSize)
 {
+	static const char *fontPath[] = {
+		"",
+		GAME_DATADIR "/",
+		"/usr/share/fonts/truetype/",
+		"/usr/share/fonts/TTF/",
+		"/usr/share/fonts/truetype/ttf-bitstream-vera/",
+		"/usr/share/fonts/truetype/dejavu/",
+		"/usr/share/fonts/dejavu/",
+		"/usr/share/fonts/truetype/liberation/",
+		"/usr/share/fonts/truetype/freefont/",
+		"/usr/local/share/fonts/",
+		NULL
+	};
+	/* used when the configured font is not installed */
+	static const char *fontFallback[] = {
+		"DejaVuSans.ttf",
+		"FreeSans.ttf",
+		"LiberationSans-Regular.ttf",
+		NULL
+	};
+	char path[1024];
 	TTF_Font *font;
+	int i, f;
 
-	/* Workaround SDL_ttf bug. TTF_OpenFont segfaults if the font doesn't exist. */
-	if (access(fontName, R_OK) == -1) {
-		fprintf (stderr, "xblast: font \"%s\" doesn't exist or isn't readable\n",
-				 fontName);
-		return NULL;
+	/* search for the font in the usual places, with a couple of common
+	   fallbacks if the configured one is not available */
+	font = NULL;
+	for (f = 0; NULL == font; f++) {
+		const char *name;
+
+		if (0 == f) {
+			name = fontName;
+		}
+		else if (NULL != fontFallback[f - 1]) {
+			name = fontFallback[f - 1];
+		}
+		else {
+			break;
+		}
+		for (i = 0; NULL != fontPath[i] && NULL == font; i++) {
+			SDL_snprintf (path, sizeof (path), "%s%s", fontPath[i], name);
+			if (0 != access (path, R_OK)) {
+				continue;
+			}
+			font = TTF_OpenFont (path, (float)fontSize);
+		}
 	}
-
-	font = TTF_OpenFont (fontName, fontSize);
 	if (NULL == font) {
-		fprintf (stderr, "xblast: %s:%d:%s: TTF_OpenFont(fontName, fontSize) failed: %s\n",
-				 __FILE__, __LINE__, __FUNCTION__, TTF_GetError ());
+		fprintf (stderr, "xblast: %s:%d:%s: TTF_OpenFont(%s, %d) failed: %s\n",
+				 __FILE__, __LINE__, __FUNCTION__, fontName, fontSize, SDL_GetError ());
 	};
 	return font;
 }								/* LoadFont */
@@ -87,14 +119,13 @@ InitFonts (void)
 	Dbg_Out ("Initialising font...");
 
 	/* Initialize the TTF library */
-	if (TTF_Init () != 0) {
+	if (!TTF_Init ()) {
 		fprintf (stderr, "xblast: %s:%d:%s: TTF_Init() failed: %s\n", __FILE__, __LINE__,
-				 __FUNCTION__, TTF_GetError ());
+				 __FUNCTION__, SDL_GetError ());
 		return (XBFalse);
 	}
 	Dbg_Out ("OK!\n");
-	atexit (TTF_Quit);
-
+	fontsInitialized = XBTrue;
 	/* get config */
 	cfgFont = GetFontConfig ();
 	assert (cfgFont != NULL);
@@ -110,19 +141,19 @@ InitFonts (void)
 	assert (fgTextSurface != NULL);
 	fontStruct[FF_Large] = LoadFont (fontName, 24);
 	if (fontStruct[FF_Large] == NULL) {
-		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", TTF_GetError ());
+		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", SDL_GetError ());
 		return XBFalse;
 	}
 
 	fontStruct[FF_Medium] = LoadFont (fontName, 18);
 	if (fontStruct[FF_Medium] == NULL) {
-		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", TTF_GetError ());
+		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", SDL_GetError ());
 		return XBFalse;
 	}
 
 	fontStruct[FF_Small] = LoadFont (fontName, 12);
 	if (fontStruct[FF_Small] == NULL) {
-		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", TTF_GetError ());
+		fprintf (stderr, "Error: unable to load font.\n" "Possible reason: %s\n", SDL_GetError ());
 		return XBFalse;
 	}
 
@@ -139,9 +170,8 @@ GUI_DrawSimpleTextbox (const char *text_in, unsigned flags, const BMRectangle * 
 	SDL_Surface *surface = NULL;
 	TTF_Font *font = NULL;
 	SDL_Rect rects;
-	int ret, x, y;
+	int x, y;
 	const char *text;
-	SDL_Color fgColor, bgColor;
 
 	if (strlen (text_in) == 0)
 		return;					// SDL_ttf doesn't like rendering 0 width text
@@ -149,54 +179,46 @@ GUI_DrawSimpleTextbox (const char *text_in, unsigned flags, const BMRectangle * 
 	text = gettext (text_in);
 	font = fontStruct[FM_Size & flags];
 
-	if (flags & FM_Color) {
-		fgColor = SDL_COLOR_WHITE;
-		bgColor = SDL_COLOR_BLACK;
+	text_surface = TTF_RenderText_Solid (font, text, 0, SDL_COLOR_YELLOW);
+	if (NULL == text_surface) {
+		fprintf (stderr, "GUI_DrawSimpleTextbox: TTF_RenderText_Solid failed: %s\n",
+				 SDL_GetError ());
+		return;
 	}
-	else {
-		fgColor = SDL_COLOR_BLACK;
-		bgColor = SDL_COLOR_WHITE;
+	surface = SDL_CreateSurface (rect->w, rect->h, screen->format);
+	if (NULL == surface) {
+		fprintf (stderr, "GUI_DrawSimpleTextbox: could not create surface: %s\n",
+				 SDL_GetError ());
+		SDL_DestroySurface (text_surface);
+		return;
 	}
-	text_surface = TTF_RenderUTF8_Solid (font, text, SDL_COLOR_YELLOW);
-	surface =
-		SDL_CreateRGBSurface (screen->flags, rect->w, rect->h, screen->format->BitsPerPixel,
-							  screen->format->Rmask, screen->format->Gmask,
-							  screen->format->Bmask, screen->format->Amask);
-
-	// text_surface = RenderOutlineText(font, text, fgColor, bgColor, 3);
-	if (text_surface == NULL) {
-		fprintf (stderr, "GUI_DrawSimpleTextbox error: %s\n", TTF_GetError ());
-	}
-	SDL_FillRect (surface, NULL, SDL_MapRGB (surface->format, 0x0, 0x0, 0x0));
-	TTF_SizeUTF8 (font, text, (int *)&(rects.x), (int *)&(rects.w));
+	SDL_FillSurfaceRect (surface, NULL, SDL_MapSurfaceRGB (surface, 0x0, 0x0, 0x0));
 	rects.x = (surface->w - text_surface->w) / 2;
 	rects.y = (surface->h - text_surface->h) / 2;
 	rects.w = 0;
 	rects.h = 0;
-	ret = SDL_BlitSurface (text_surface, NULL, surface, &rects);
-	if (ret == -1) {
+	if (!SDL_BlitSurface (text_surface, NULL, surface, &rects)) {
 		fprintf (stderr, "Error: could blit!\n" "Reason: %s\n", SDL_GetError ());
 	}
 
 	//  SDL_SetColorKey(surface, SDL_SRCCOLORKEY, SDL_MapRGB(surface->format, 0xf, 0xf, 0xf));
 	for (y = 0; y < surface->h; y++) {
-		putpixel (surface, 0, y, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, 1, y, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, surface->w - 1, y, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, surface->w - 2, y, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
+		putpixel (surface, 0, y, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, 1, y, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, surface->w - 1, y, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, surface->w - 2, y, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
 	}
 	for (x = 0; x < surface->w; x++) {
-		putpixel (surface, x, 0, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, x, 1, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, x, surface->h - 1, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
-		putpixel (surface, x, surface->h - 2, SDL_MapRGB (surface->format, 0xff, 0xff, 0x0));
+		putpixel (surface, x, 0, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, x, 1, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, x, surface->h - 1, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
+		putpixel (surface, x, surface->h - 2, SDL_MapSurfaceRGB (surface, 0xff, 0xff, 0x0));
 	}
 	rects.x = rect->x;
 	rects.y = rect->y;
 	SDL_BlitSurface (surface, NULL, screen, &rects);
-	SDL_UpdateRect (screen, rects.x, rects.y, surface->w, surface->h);
-	SDL_FreeSurface (text_surface);
-	SDL_FreeSurface (surface);
+	SDL_DestroySurface (text_surface);
+	SDL_DestroySurface (surface);
 }								/* GUI_DrawSimpleTextbox */
 
 /*
@@ -220,7 +242,7 @@ DrawAlignedText (const char *text, unsigned flags, SDL_Rect * rect, TTF_Font * f
 		text_surface = RenderOutlineText (font, text, *fgColor, *bgColor, 3);
 	if (text_surface == NULL) {
 		fprintf (stderr, "xblast: %s:%d:%s: TTF_RenderUTF8_Solid failed: %s\n", __FILE__, __LINE__,
-				 __FUNCTION__, TTF_GetError ());
+				 __FUNCTION__, SDL_GetError ());
 		return;
 	};
 	switch (flags & FM_Align) {
@@ -238,13 +260,18 @@ DrawAlignedText (const char *text, unsigned flags, SDL_Rect * rect, TTF_Font * f
 		rects.x = (rects.x >> 1) + rect->x;
 		break;
 	}
-	if (rect->w < text_surface->w) ;
-	rect->w = 2 * rect->w - text_surface->w;
-	rect->x = 0;
-	rect->y = 0;
-	SDL_BlitSurface (text_surface, rect, screen, &rects);
-	SDL_UpdateRect (screen, rects.x, rects.y, rects.w, rects.h);
-	SDL_FreeSurface (text_surface);
+	rects.w = 0;
+	rects.h = 0;
+	{
+		SDL_Rect src;
+
+		src.x = 0;
+		src.y = 0;
+		src.w = text_surface->w;
+		src.h = text_surface->h;
+		SDL_BlitSurface (text_surface, &src, screen, &rects);
+	}
+	SDL_DestroySurface (text_surface);
 }								/* DrawAlignedText */
 
 /*
@@ -287,17 +314,14 @@ GUI_DrawTextbox (const char *text, unsigned flags, const BMRectangle * rect)
 	rects.h = rect->h;
 	if (flags & FM_Boxed) {
 		SDL_Rect rect1;
-		rect_surface =
-			SDL_CreateRGBSurface (screen->flags, rect->w, rect->h, screen->format->BitsPerPixel,
-								  screen->format->Rmask, screen->format->Gmask,
-								  screen->format->Bmask, screen->format->Amask);
-		BackGround = SDL_MapRGB (rect_surface->format, fgColor->r, fgColor->g, fgColor->b);
-		SDL_FillRect (rect_surface, NULL, BackGround);
+		rect_surface = SDL_CreateSurface (rect->w, rect->h, screen->format);
+		BackGround = SDL_MapSurfaceRGB (rect_surface, fgColor->r, fgColor->g, fgColor->b);
+		SDL_FillSurfaceRect (rect_surface, NULL, BackGround);
 		rect1.y = offset;
 		rect1.x = offset;
 		rect1.w = rect_surface->w - 2 * offset;
 		rect1.h = rect_surface->h - 2 * offset;
-		SDL_FillRect (rect_surface, &rect1, SDL_MapRGB (rect_surface->format, 0xFF, 0xFF, 0xFF));
+		SDL_FillSurfaceRect (rect_surface, &rect1, SDL_MapSurfaceRGB (rect_surface, 0xFF, 0xFF, 0xFF));
 		if (!(flags & FM_Transparent)) {
 			int line, col;
 			SDL_Rect bgImgRect;
@@ -321,19 +345,18 @@ GUI_DrawTextbox (const char *text, unsigned flags, const BMRectangle * rect)
 		}
 		else {
 			int x, y;
-			SDL_SetColorKey (rect_surface, SDL_SRCCOLORKEY | SDL_RLEACCEL,
-							 SDL_MapRGB (rect_surface->format, 0xFF, 0xFF, 0xFF));
+			SDL_SetSurfaceColorKey (rect_surface, true,
+							 SDL_MapSurfaceRGB (rect_surface, 0xFF, 0xFF, 0xFF));
 			for (y = 2; y < rect_surface->h - 2; y++) {
 				for (x = 2; x < rect_surface->w - 2; x++) {
 					if (y % 2 == 0)
 						putpixel (rect_surface, x, y,
-								  SDL_MapRGB (rect_surface->format, 0x0, 0x0, 0x0));
+								  SDL_MapSurfaceRGB (rect_surface, 0x0, 0x0, 0x0));
 				}
 			}
 		}
 		SDL_BlitSurface (rect_surface, NULL, screen, &rects);
-		SDL_UpdateRect (screen, rects.x, rects.y, rects.w, rects.h);
-		SDL_FreeSurface (rect_surface);
+		SDL_DestroySurface (rect_surface);
 	}
 	if (*text != 0) {
 		if (flags & FM_Color)
@@ -362,18 +385,15 @@ RenderSolidText (TTF_Font * font, const char *text, SDL_Color textColor)
 	SDL_Surface *text_surface;
 	SDL_Surface *surface;
 
-	text_surface = TTF_RenderUTF8_Solid (font, text, textColor);
+	text_surface = TTF_RenderText_Solid (font, text, 0, textColor);
 	if (text_surface == NULL) {
-		fprintf (stderr, "Error: TTF could not render font!\n" "Reason: %s\n", TTF_GetError ());
+		fprintf (stderr, "Error: TTF could not render font!\n" "Reason: %s\n", SDL_GetError ());
 		return NULL;
 	}
-	surface = SDL_CreateRGBSurface (SDL_SWSURFACE, text_surface->w, text_surface->h,
-												 screen->format->BitsPerPixel,
-												 screen->format->Rmask,
-												 screen->format->Gmask, screen->format->Bmask, 0);
+	surface = SDL_CreateSurface (text_surface->w, text_surface->h, screen->format);
 	SDL_BlitSurface (text_surface, NULL, surface, NULL);
-	SDL_SetColorKey (surface, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-	SDL_FreeSurface (text_surface);
+	SDL_SetSurfaceColorKey (surface, true, 0);
+	SDL_DestroySurface (text_surface);
 
 	// the reason why we create a new blit is to make pallete just like the
 	// screen, so that the colors from both text rendered by RenderSolidText()
@@ -391,7 +411,7 @@ SDL_Surface *
 RenderOutlineText (TTF_Font * font, const char *text, SDL_Color textColor,
 				   SDL_Color outlineColor, int length)
 {
-	int x, y, l, ret;
+	int x, y, l;
 	SDL_Surface *text_surface = NULL;
 	SDL_Surface *surface = NULL;
 	SDL_Rect rect;
@@ -401,36 +421,31 @@ RenderOutlineText (TTF_Font * font, const char *text, SDL_Color textColor,
 		textColor.r = textColor.g = textColor.b = 1;
 	if (outlineColor.r == 0 && outlineColor.g == 0 && outlineColor.b == 0)
 		outlineColor.r = outlineColor.g = outlineColor.b = 1;
-	text_surface = TTF_RenderUTF8_Solid (font, text, textColor);
+	text_surface = TTF_RenderText_Solid (font, text, 0, textColor);
 	if (text_surface == NULL) {
-		fprintf (stderr, "Error: TTF could not render font!\n" "Reason: %s\n", TTF_GetError ());
+		fprintf (stderr, "Error: TTF could not render font!\n" "Reason: %s\n", SDL_GetError ());
 		return NULL;
 	}
 	rect.x = rect.y = length;
-	surface =
-		SDL_CreateRGBSurface (SDL_SWSURFACE, text_surface->w + 2 * length,
-							  text_surface->h + 2 * length, screen->format->BitsPerPixel,
-							  screen->format->Rmask, screen->format->Gmask, screen->format->Bmask,
-							  screen->format->Amask);
+	surface = SDL_CreateSurface (text_surface->w + 2 * length,
+								 text_surface->h + 2 * length, screen->format);
 	if (surface == NULL) {
 		fprintf (stderr, "Error: could not create surface!\n" "Reason: %s\n", SDL_GetError ());
 		return NULL;
 	}
 
 	/* make grey transparent */
-	SDL_FillRect (surface, NULL, SDL_MapRGB (surface->format, 0xf, 0xf, 0xf));
-	ret = SDL_BlitSurface (text_surface, NULL, surface, &rect);
-	if (ret == -1) {
+	SDL_FillSurfaceRect (surface, NULL, SDL_MapSurfaceRGB (surface, 0xf, 0xf, 0xf));
+	if (!SDL_BlitSurface (text_surface, NULL, surface, &rect)) {
 		fprintf (stderr, "Error: could blit!\n" "Reason: %s\n", SDL_GetError ());
 	}
-	SDL_SetColorKey (surface, SDL_SRCCOLORKEY, SDL_MapRGB (surface->format, 0xf, 0xf, 0xf));
-	SDL_FreeSurface (text_surface);
+	SDL_SetSurfaceColorKey (surface, true, SDL_MapSurfaceRGB (surface, 0xf, 0xf, 0xf));
+	SDL_DestroySurface (text_surface);
 	if (length > 0) {
-		Uint32 tcolor = SDL_MapRGB (surface->format, textColor.r, textColor.g, textColor.b);
+		Uint32 tcolor = SDL_MapSurfaceRGB (surface, textColor.r, textColor.g, textColor.b);
 		Uint32 ocolor =
-			SDL_MapRGB (surface->format, outlineColor.r, outlineColor.g, outlineColor.b);
-		if (SDL_MUSTLOCK (surface))
-			SDL_LockSurface (surface);
+			SDL_MapSurfaceRGB (surface, outlineColor.r, outlineColor.g, outlineColor.b);
+		SDL_LockSurface (surface);
 		for (y = 0; y < surface->h; y++)
 			for (x = 0; x < surface->w; x++) {
 				if (getpixel (surface, x, y) == tcolor) {
@@ -456,11 +471,106 @@ RenderOutlineText (TTF_Font * font, const char *text, SDL_Color textColor,
 							putpixel (surface, x, y - l, ocolor);
 				}
 			}
-		if (SDL_MUSTLOCK (surface))
-			SDL_UnlockSurface (surface);
+		SDL_UnlockSurface (surface);
 	}
 	return surface;
 }								/* RenderOutlineText */
+
+/*
+ * local helpers for filled polygons and lines (replacing SDL_gfx)
+ */
+static void
+DrawLineColor (SDL_Surface * surface, int x1, int y1, int x2, int y2, Uint32 pixel)
+{
+	int dx = abs (x2 - x1);
+	int sx = (x1 < x2) ? 1 : -1;
+	int dy = -abs (y2 - y1);
+	int sy = (y1 < y2) ? 1 : -1;
+	int err = dx + dy;
+
+	for (;;) {
+		if (x1 >= 0 && y1 >= 0 && x1 < surface->w && y1 < surface->h) {
+			putpixel (surface, x1, y1, pixel);
+		}
+		if (x1 == x2 && y1 == y2) {
+			break;
+		}
+		{
+			int e2 = 2 * err;
+			if (e2 >= dy) {
+				err += dy;
+				x1 += sx;
+			}
+			if (e2 <= dx) {
+				err += dx;
+				y1 += sy;
+			}
+		}
+	}
+}								/* DrawLineColor */
+
+static void
+FillPolygonColor (SDL_Surface * surface, const Sint16 * xv, const Sint16 * yv, int n,
+				  Uint32 pixel)
+{
+	int minY = yv[0];
+	int maxY = yv[0];
+	int i, y;
+
+	for (i = 1; i < n; i++) {
+		if (yv[i] < minY) {
+			minY = yv[i];
+		}
+		if (yv[i] > maxY) {
+			maxY = yv[i];
+		}
+	}
+	if (minY < 0) {
+		minY = 0;
+	}
+	if (maxY >= surface->h) {
+		maxY = surface->h - 1;
+	}
+
+	for (y = minY; y <= maxY; y++) {
+		int nodes[64];
+		int numNodes = 0;
+		int x;
+
+		for (i = 0; i < n; i++) {
+			int j = (i + 1) % n;
+			if (((yv[i] <= y) && (yv[j] > y)) || ((yv[j] <= y) && (yv[i] > y))) {
+				if (numNodes < (int)(sizeof (nodes) / sizeof (nodes[0]))) {
+					nodes[numNodes++] = xv[i] + (int)((y - yv[i]) * (double)(xv[j] - xv[i])
+													  / (double)(yv[j] - yv[i]));
+				}
+			}
+		}
+		/* sort intersections */
+		for (i = 1; i < numNodes; i++) {
+			int key = nodes[i];
+			int k = i - 1;
+			while (k >= 0 && nodes[k] > key) {
+				nodes[k + 1] = nodes[k];
+				k--;
+			}
+			nodes[k + 1] = key;
+		}
+		for (i = 0; i + 1 < numNodes; i += 2) {
+			int x0 = nodes[i];
+			int x1 = nodes[i + 1];
+			if (x0 < 0) {
+				x0 = 0;
+			}
+			if (x1 >= surface->w) {
+				x1 = surface->w - 1;
+			}
+			for (x = x0; x <= x1; x++) {
+				putpixel (surface, x, y, pixel);
+			}
+		}
+	}
+}								/* FillPolygonColor */
 
 /*
  * draw a filled and outlined polygon
@@ -473,26 +583,31 @@ GUI_DrawPolygon (int x, int y, int w, int h, int lw, const BMPoint * points, int
 
 	/* convert and scale to xpoints */
 	Sint16 xv[npoints + 1], yv[npoints + 1];
+	Uint32 blackPixel, yellowPixel;
 	for (i = 0; i < npoints; i++) {
 		xv[i] = (int)(x + w * points[i].x);
 		yv[i] = (int)(y + h * points[i].y);
 	} xv[npoints] = xv[0];
 	yv[npoints] = yv[0];
 
+	blackPixel = SDL_MapSurfaceRGB (screen, SDL_COLOR_BLACK.r, SDL_COLOR_BLACK.g,
+									SDL_COLOR_BLACK.b);
+	yellowPixel = SDL_MapSurfaceRGB (screen, SDL_COLOR_YELLOW.r, SDL_COLOR_YELLOW.g,
+									 SDL_COLOR_YELLOW.b);
+
+	SDL_LockSurface (screen);
 	/* now draw it */
-	filledPolygonRGBA (screen, xv, yv, npoints, SDL_COLOR_BLACK.r, SDL_COLOR_BLACK.g,
-					   SDL_COLOR_BLACK.b, 255);
+	FillPolygonColor (screen, xv, yv, npoints, blackPixel);
 	if (!black_white) {
-		int w;
+		int l;
 		for (i = 0; i < npoints; i++) {
-			for (w = 0; w < lw; w++)
-				lineRGBA (screen, xv[i] + w, yv[i], xv[i + 1] + w, yv[i + 1], SDL_COLOR_YELLOW.r,
-						  SDL_COLOR_YELLOW.g, SDL_COLOR_YELLOW.b, 255);
-			for (w = 0; w < lw; w++)
-				lineRGBA (screen, xv[i], yv[i] + w, xv[i + 1], yv[i + 1] + w, SDL_COLOR_YELLOW.r,
-						  SDL_COLOR_YELLOW.g, SDL_COLOR_YELLOW.b, 255);
+			for (l = 0; l < lw; l++) {
+				DrawLineColor (screen, xv[i] + l, yv[i], xv[i + 1] + l, yv[i + 1], yellowPixel);
+				DrawLineColor (screen, xv[i], yv[i] + l, xv[i + 1], yv[i + 1] + l, yellowPixel);
+			}
 		}
 	}
+	SDL_UnlockSurface (screen);
 
 	/* that's all */
 
@@ -544,7 +659,7 @@ GUI_DrawPolygon (int x, int y, int w, int h, int lw, const BMPoint * points, int
 Uint32
 getpixel (SDL_Surface * surface, int x, int y)
 {
-	int bpp = surface->format->BytesPerPixel;
+	int bpp = SDL_BYTESPERPIXEL (surface->format);
 
 	/* Here p is the address to the pixel we want to retrieve */
 	Uint8 *p = (Uint8 *) surface->pixels + y * surface->pitch + x * bpp;
@@ -575,7 +690,7 @@ getpixel (SDL_Surface * surface, int x, int y)
 void
 putpixel (SDL_Surface * surface, int x, int y, Uint32 pixel)
 {
-	int bpp = surface->format->BytesPerPixel;
+	int bpp = SDL_BYTESPERPIXEL (surface->format);
 
 	/* Here p is the address to the pixel we want to set */
 	Uint8 *p = (Uint8 *) surface->pixels + y * surface->pitch + x * bpp;
@@ -603,6 +718,27 @@ putpixel (SDL_Surface * surface, int x, int y, Uint32 pixel)
 		break;
 	}
 }
+
+/*
+ * release all font resources
+ */
+void
+FinishFonts (void)
+{
+	int i;
+
+	if (!fontsInitialized) {
+		return;
+	}
+	for (i = 0; i < NUM_FONTS; i++) {
+		if (NULL != fontStruct[i]) {
+			TTF_CloseFont (fontStruct[i]);
+			fontStruct[i] = NULL;
+		}
+	}
+	TTF_Quit ();
+	fontsInitialized = XBFalse;
+}								/* FinishFonts */
 
 /*
  * end of file sdl_text.c

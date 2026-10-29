@@ -50,21 +50,30 @@ static const XBColor colorIcon[MAX_ICON_SPRITES] = {
 	COLOR_GRAY_75, COLOR_RED, COLOR_GREEN, COLOR_BLUE,
 };
 
+/*
+ * Note: SDL_SetSurfaceRLE() is deliberately not used anywhere: with SDL3
+ * an RLE-accelerated surface ignores its color key when blitted, which
+ * breaks all sprite transparency. Plain blits are fast enough.
+ */
+
 static void
 InvertBlackAndWhiteSurface (SDL_Surface * mask)
 {
 
 	int x, y;
 	Uint32 pixel;
+	Uint32 blackPixel, whitePixel;
+
+	/* note: converted surfaces have an alpha channel, so "black" is not 0 */
+	blackPixel = SDL_MapSurfaceRGB (mask, 0x00, 0x00, 0x00);
+	whitePixel = SDL_MapSurfaceRGB (mask, 0xFF, 0xFF, 0xFF);
 	for (y = 0; y < mask->h; y++) {
 		for (x = 0; x < mask->w; x++) {
 			pixel = getpixel (mask, x, y);
-			putpixel (mask, x, y, !pixel * 0xffffffff);
+			putpixel (mask, x, y, (pixel & 0xFFFFFF) ? blackPixel : whitePixel);
 		}
 	}
-	SDL_SetColorKey (mask, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-
-	SDL_UpdateRect (mask, 0, 0, 0, 0);
+	SDL_SetSurfaceColorKey (mask, true, blackPixel);
 
 	GUI_FlushPixmap (XBFalse);
 
@@ -76,46 +85,27 @@ InvertBlackAndWhiteSurface (SDL_Surface * mask)
  * sdl_color should respect the format specified
  * in sprite's surface->format.
  * ie. If sprite is 8bpp, keep sdl_color < 256.
+ *
+ * Pixels which are set in the mask are considered transparent,
+ * they are painted over with sdl_color which is then used as
+ * the transparent color of the sprite.
  */
 static void
 MaskSprite (SDL_Surface * mask, SDL_Surface * sprite, Uint32 sdl_color)
 {
-	SDL_Color colors[2] = { {0, 0, 0, 0}, {0xFF, 0xFF, 0xFF, 0} };
-	SDL_Color dst_colors[2] = { {0, 0, 0, 0}, {0xFF, 0xFF, 0xFF, 0} };
+	int x, y;
 
-	SDL_Palette palette = { 2, colors };
-
-	SDL_PixelFormat format = {
-		&palette,
-		8,
-		1,
-		0, 0, 0, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0,
-		0,
-		0
-	};
-
-	SDL_Surface *temp;
-	Uint8 red, green, blue;
-
-	temp = SDL_ConvertSurface (mask, &format, SDL_SRCCOLORKEY);
-
-	assert (temp);
-
-	SDL_GetRGB (sdl_color, sprite->format, &red, &green, &blue);
-
-	dst_colors[1].r = red;
-	dst_colors[1].g = green;
-	dst_colors[1].b = blue;
-
-	SDL_SetColors (temp, dst_colors, 0, 2);
-	SDL_SetColorKey (temp, SDL_SRCCOLORKEY | SDL_RLEACCEL, mask->format->colorkey);
-
-	SDL_SetColorKey (sprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, sdl_color);
-	SDL_BlitSurface (temp, NULL, sprite, NULL);
-
-	SDL_FreeSurface (temp);
+	if (NULL == mask || NULL == sprite) {
+		return;
+	}
+	for (y = 0; y < mask->h; y++) {
+		for (x = 0; x < mask->w; x++) {
+			if (getpixel (mask, x, y) & 0xFFFFFF) {
+				putpixel (sprite, x, y, sdl_color);
+			}
+		}
+	}
+	SDL_SetSurfaceColorKey (sprite, true, sdl_color);
 
 }
 
@@ -127,19 +117,18 @@ static void
 MaskBombSprite (SDL_Surface * mask, SDL_Surface * sprite, Uint32 sdl_color)
 {
 	int i, j;
-	Uint32 bla, scolor;
+	Uint32 scolor;
 
-	bla = SDL_MapRGB (mask->format, 0, 0, 0);
-	scolor = SDL_MapRGB (sprite->format, 0xff, 0, 0);
+	scolor = SDL_MapSurfaceRGB (sprite, 0xff, 0, 0);
 	for (j = 0; j < mask->h; j++) {
 		for (i = 0; i < mask->w; i++) {
-			if (getpixel (mask, i, j) > bla) {
+			if (getpixel (mask, i, j) & 0xFFFFFF) {
 				putpixel (sprite, i, j, scolor);
 
 			}
 		}
 	}
-	SDL_SetColorKey (sprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, scolor);
+	SDL_SetSurfaceColorKey (sprite, true, scolor);
 
 }
 
@@ -161,13 +150,12 @@ InitSprites (void)
 		for (j = 0; j < MAX_BOMB_ANIME; j++) {
 			pixBombMask[i][j] = ReadPbmBitmap (imgPathExpl, imgFileBomb[i][j]);
 			pixBombBits[i][j] = ReadRgbPixmap (imgPathExpl, imgFileBomb[i][j]);
-			//MaskSprite(pixBombMask[i][j], pixBombBits[i][j], SDL_MapRGB(pixBombBits[i][j]->format, 1, 1, 0));
-			MaskBombSprite (pixBombMask[i][j], pixBombBits[i][j],
-							SDL_MapRGB (pixBombBits[i][j]->format, 1, 1, 0));
-			InvertBlackAndWhiteSurface (pixBombMask[i][j]);
-			if ((NULL == pixBombBits[i][j]) || (NULL == pixBombMask[i][j])) {
+			if (NULL == pixBombMask[i][j] || NULL == pixBombBits[i][j]) {
 				return XBFalse;
 			}
+			MaskBombSprite (pixBombMask[i][j], pixBombBits[i][j],
+							SDL_MapSurfaceRGB (pixBombBits[i][j], 1, 1, 0));
+			InvertBlackAndWhiteSurface (pixBombMask[i][j]);
 		}
 	}
 	/* create explosion sprites */
@@ -175,10 +163,10 @@ InitSprites (void)
 		/* mask */
 		pixExplMask[i] = ReadPbmBitmap (imgPathExpl, imgFileExpl[i]);
 		pixExplBits[i] = ReadRgbPixmap (imgPathExpl, imgFileExpl[i]);
-		MaskSprite (pixExplMask[i], pixExplBits[i], SDL_MapRGB (pixExplBits[i]->format, 0, 1, 0));
-		if ((NULL == pixExplBits[i]) || (NULL == pixExplMask[i])) {
+		if (NULL == pixExplMask[i] || NULL == pixExplBits[i]) {
 			return XBFalse;
 		}
+		MaskSprite (pixExplMask[i], pixExplBits[i], SDL_MapSurfaceRGB (pixExplBits[i], 0, 1, 0));
 	}
 	/* set default value for player sprites */
 	for (i = 0; i < MAX_PLAYER; i++) {
@@ -197,12 +185,12 @@ InitSprites (void)
 	for (j = 0; j < MAX_ANIME_PPM; j++) {
 		pixPpmSpriteBits[j] = ReadRgbPixmap (imgPathSprite, imgFileSpritePpm[j]);
 		pixPpmSpriteMask[j] = ReadPbmBitmap (imgPathSprite, imgFileSpritePpm[j]);
-		MaskSprite (pixPpmSpriteMask[j], pixPpmSpriteBits[j],
-					SDL_MapRGB (pixPpmSpriteBits[j]->format, 1, 1, 1));
-		InvertBlackAndWhiteSurface (pixPpmSpriteMask[j]);
-		if ((NULL == pixPpmSpriteBits[j]) || (NULL == pixPpmSpriteMask[j])) {
+		if (NULL == pixPpmSpriteBits[j] || NULL == pixPpmSpriteMask[j]) {
 			return XBFalse;
 		}
+		MaskSprite (pixPpmSpriteMask[j], pixPpmSpriteBits[j],
+					SDL_MapSurfaceRGB (pixPpmSpriteBits[j], 1, 1, 1));
+		InvertBlackAndWhiteSurface (pixPpmSpriteMask[j]);
 	}
 	/* load all icons soprites */
 	for (i = 0; i < MAX_ICON_SPRITES; i++) {
@@ -210,7 +198,10 @@ InitSprites (void)
 			ReadCchPixmap (imgPathMisc, imgFileIcon[i], COLOR_BLACK, colorIcon[i],
 						   COLOR_LIGHT_GOLDENROD);
 		pixIconMask[i] = ReadPbmBitmap (imgPathMisc, imgFileIcon[i]);
-		MaskSprite (pixIconMask[i], pixIconBits[i], SDL_MapRGB (pixIconBits[i]->format, 1, 1, 1));
+		if (NULL == pixIconBits[i] || NULL == pixIconMask[i]) {
+			return XBFalse;
+		}
+		MaskSprite (pixIconMask[i], pixIconBits[i], SDL_MapSurfaceRGB (pixIconBits[i], 1, 1, 1));
 	}
 	/* that's all */
 	return XBTrue;
@@ -232,11 +223,11 @@ GUI_LoadPlayerSprite (int player, int anime, const CFGPlayerGraphics * config)
 		/* graphics has changed => delete all loaded pixmaps */
 		for (i = 0; i < MAX_ANIME_EPM; i++) {
 			if (NULL != pixEpmSpriteBits[player][i]) {
-				SDL_FreeSurface (pixEpmSpriteBits[player][i]);
+				SDL_DestroySurface (pixEpmSpriteBits[player][i]);
 				pixEpmSpriteBits[player][i] = NULL;
 			}
 			if (NULL != pixEpmSpriteMask[player][i]) {
-				SDL_FreeSurface (pixEpmSpriteMask[player][i]);
+				SDL_DestroySurface (pixEpmSpriteMask[player][i]);
 				pixEpmSpriteMask[player][i] = NULL;
 			}
 		}
@@ -277,10 +268,10 @@ GUI_LoadIconSprite (int index, XBColor color)
 	assert (index < MAX_COLOR_SPRITES);
 	/* load sprite */
 	if (pixIconBits[index] != NULL) {
-		SDL_FreeSurface (pixIconBits[index]);
+		SDL_DestroySurface (pixIconBits[index]);
 	}
 	if (pixIconMask[index] != NULL) {
-		SDL_FreeSurface (pixIconMask[index]);
+		SDL_DestroySurface (pixIconMask[index]);
 	}
 	pixIconBits[index] =
 		ReadCchPixmap (imgPathMisc, imgFileIcon[index], COLOR_BLACK, color, COLOR_LIGHT_GOLDENROD);
@@ -429,6 +420,50 @@ GUI_DrawTextSprite (const Sprite * ptr)
 {
 	GUI_DrawTextbox (SpriteText (ptr), SpriteAnime (ptr), SpriteRectangle (ptr));
 }								/* GUI_DrawTextSprite */
+
+/*
+ * release all sprite resources
+ */
+void
+FinishSprites (void)
+{
+	int i, j;
+
+	for (i = 0; i < MAX_BOMBS; i++) {
+		for (j = 0; j < MAX_BOMB_ANIME; j++) {
+			SDL_DestroySurface (pixBombMask[i][j]);
+			pixBombMask[i][j] = NULL;
+			SDL_DestroySurface (pixBombBits[i][j]);
+			pixBombBits[i][j] = NULL;
+		}
+	}
+	for (i = 0; i < MAX_EXPLOSION; i++) {
+		SDL_DestroySurface (pixExplMask[i]);
+		pixExplMask[i] = NULL;
+		SDL_DestroySurface (pixExplBits[i]);
+		pixExplBits[i] = NULL;
+	}
+	for (i = 0; i < MAX_PLAYER; i++) {
+		for (j = 0; j < MAX_ANIME_EPM; j++) {
+			SDL_DestroySurface (pixEpmSpriteBits[i][j]);
+			pixEpmSpriteBits[i][j] = NULL;
+			SDL_DestroySurface (pixEpmSpriteMask[i][j]);
+			pixEpmSpriteMask[i][j] = NULL;
+		}
+	}
+	for (j = 0; j < MAX_ANIME_PPM; j++) {
+		SDL_DestroySurface (pixPpmSpriteBits[j]);
+		pixPpmSpriteBits[j] = NULL;
+		SDL_DestroySurface (pixPpmSpriteMask[j]);
+		pixPpmSpriteMask[j] = NULL;
+	}
+	for (i = 0; i < MAX_ICON_SPRITES; i++) {
+		SDL_DestroySurface (pixIconBits[i]);
+		pixIconBits[i] = NULL;
+		SDL_DestroySurface (pixIconMask[i]);
+		pixIconMask[i] = NULL;
+	}
+}								/* FinishSprites */
 
 /*
  * end of x11c_sprite.h

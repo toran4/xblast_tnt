@@ -219,8 +219,7 @@ InitTimer (void)
 /*
  * callback
  */
-static void PASCAL _export
-TimerProc (UINT idEvent, UINT dummy, DWORD userData, DWORD dummy1, DWORD dummy2)
+static void CALLBACK TimerProc (UINT idEvent, UINT dummy, DWORD userData, DWORD dummy1, DWORD dummy2)
 {
 	PostMessage (window, userData, 0, 0);
 }								/* TimerProc */
@@ -592,7 +591,7 @@ HandleNewPalette (void)
 /*
  * window event routine
  */
-long PASCAL _export
+LRESULT CALLBACK
 WindowProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) {

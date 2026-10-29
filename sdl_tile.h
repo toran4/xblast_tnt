@@ -24,6 +24,7 @@
 #define XBLAST_SDL_COLOR_TILE_H
 
 extern XBBool InitTiles (void);
+extern void FinishTiles (void);
 
 #endif
 /*

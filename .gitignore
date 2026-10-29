@@ -37,6 +37,7 @@
 .deps/
 autom4te.cache/
 aclocal.m4
+compile
 configure
 config.h
 config.h.in

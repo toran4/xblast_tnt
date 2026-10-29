@@ -242,13 +242,13 @@ ParseEntryValue (const char *line)
 	while (isspace ((unsigned char)*src)) {
 		src++;
 	}
-	while ((!XB_iniEOL (*src)) && (*src != '\0')) {
+	while ((!XB_iniEOL (*src)) && (*src != '\0') && (dst < result + (int) sizeof (result) - 1)) {
 		*dst = *src;
 		dst++;
 		src++;
 	}
 
-	while (isspace ((unsigned char)*(dst - 1))) {
+	while (dst > result && isspace ((unsigned char)*(dst - 1))) {
 		--dst;
 	}
 	*dst = 0;
@@ -414,7 +414,7 @@ DB_Create (DBType type, XBAtom atom)
 	/* store in list */
 	db->next = db_list[type];
 	db_list[type] = db;
-	/* that´s all */
+	/* thatï¿½s all */
 	return db;
 }								/* DB_Create */
 
@@ -539,7 +539,7 @@ DB_CreateSection (DBRoot * db, XBAtom atom)
 	/* store in database */
 	section->next = db->section;
 	db->section = section;
-	/* that´s all */
+	/* thatï¿½s all */
 	return section;
 }								/* DB_CreateSection */
 
@@ -1190,7 +1190,7 @@ AddStringToBuffer (char *buf, size_t len, const char *add)
 		return XBTrue;
 	}
 	/* no, does not fit */
-	memset (buf + nul, (unsigned char)"x", len - nul - 1);
+	memset (buf + nul, (unsigned char) 'x', len - nul - 1);
 	memset (buf + len - 1, 0, 1);
 	return XBFalse;
 }								/* AddStringToBuffer */

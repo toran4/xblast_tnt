@@ -56,31 +56,58 @@ InitPaths (void)
 	char tmp[1024];
 
 	char *home;
-	/* set private xblast path */
-	home = getenv ("HOME");
-	if (NULL == home) {
-		strcpy (userPath, "./user");
+	char *xdgData;
+	char *xblastHome;
+	struct stat st;
+	/* allow overriding the user data directory */
+	xblastHome = getenv ("XBLAST_HOME");
+	if (NULL != xblastHome && xblastHome[0] != '\0') {
+		strncpy (userPath, xblastHome, sizeof (userPath) - 1);
+		userPath[sizeof (userPath) - 1] = '\0';
 	}
 	else {
-		sprintf (userPath, "%s/.xblast_tnt", home);
+		home = getenv ("HOME");
+		if (NULL == home) {
+			strcpy (userPath, "./user");
+		}
+		else {
+			/* prefer an existing legacy directory for backwards compatibility */
+			sprintf (userPath, "%s/.xblast_tnt", home);
+			if (stat (userPath, &st) != 0 || !S_ISDIR (st.st_mode)) {
+				/* fall back to XDG base directory specification */
+				xdgData = getenv ("XDG_DATA_HOME");
+				if (NULL != xdgData && xdgData[0] != '\0') {
+					snprintf (userPath, sizeof (userPath), "%s/xblast_tnt", xdgData);
+				}
+				else {
+					snprintf (tmp, sizeof (tmp), "%s/.local/share", home);
+					if (stat (tmp, &st) == 0 && S_ISDIR (st.st_mode)) {
+						snprintf (userPath, sizeof (userPath), "%s/.local/share/xblast_tnt", home);
+					}
+					else {
+						sprintf (userPath, "%s/.xblast_tnt", home);
+					}
+				}
+			}
+		}
 	}
 #if defined(__MINGW32__) || defined(WMS)
 	mkdir (userPath);
 	/* config subdirs */
-	sprintf (tmp, "%s/config", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/config", userPath);
 	mkdir (tmp);
-	sprintf (tmp, "%s/demo", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/demo", userPath);
 	mkdir (tmp);
-	sprintf (tmp, "%s/central", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/central", userPath);
 	mkdir (tmp);
 #else
 	mkdir (userPath, 0755);
 	/* config subdirs */
-	sprintf (tmp, "%s/config", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/config", userPath);
 	mkdir (tmp, 0700);
-	sprintf (tmp, "%s/demo", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/demo", userPath);
 	mkdir (tmp, 0700);
-	sprintf (tmp, "%s/central", userPath);
+	snprintf (tmp, sizeof (tmp), "%s/central", userPath);
 	mkdir (tmp, 0700);
 #endif
 	/* set user path as first path to load from */
@@ -267,13 +294,13 @@ CreateFileList (const char *path, const char *ext, XBBool rec)
 						sprintf (dirName1, "%s/%s/*", dirName, find_data.cFileName);
 						/* try to open */
 						if (INVALID_HANDLE_VALUE != (dp1 = FindFirstFile (dirName1, &find_data1))) {
-							/* cut the \/* */
+							/* cut trailing wildcard */
 							dirName1[strlen (dirName1) - 2] = '\0';
 							/* create list */
 							list1 = CreateFileList (dirName1, ext, rec);
 							if (list1 != NULL) {
 								for (ptr = list1; NULL != ptr; ptr = ptr->next) {
-									sprintf (fileName1, "%s/%s", find_data.cFileName, ptr->name);
+									snprintf (fileName1, sizeof (fileName1), "%s/%s", find_data.cFileName, ptr->name);
 									AddToFileList (&list, fileName1, strlen (fileName1),
 												   ptr->mtime);
 								}
@@ -320,7 +347,7 @@ CreateFileList (const char *path, const char *ext, XBBool rec)
 					/* if recursive check if directory */
 					if (0 != rec) {
 						/* it might be a directory */
-						sprintf (dirName1, "%s/%s", dirName, dirp->d_name);
+						snprintf (dirName1, sizeof (dirName1), "%s/%s", dirName, dirp->d_name);
 						if (NULL != (dp1 = opendir (dirName1))) {
 							/* create a list of the dir / subdirs */
 							list1 = CreateFileList (dirName1, ext, rec);
@@ -329,7 +356,7 @@ CreateFileList (const char *path, const char *ext, XBBool rec)
 								/* save list in sub list */
 								for (ptr = list1; NULL != ptr; ptr = ptr->next) {
 									/* list name is filename from the path GAME_DATADIR/level */
-									sprintf (fileName1, "%s/%s", dirp->d_name, ptr->name);
+									snprintf (fileName1, sizeof (fileName1), "%s/%s", dirp->d_name, ptr->name);
 									/* add to main list */
 									AddToFileList (&list, fileName1, strlen (fileName1),
 												   ptr->mtime);

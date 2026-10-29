@@ -24,6 +24,12 @@
 #define _W32_MM_H
 
 #include <windows.h>
+#ifndef STDCALL
+#define STDCALL WINAPI
+#endif
+#ifndef FAR
+#define FAR
+#endif
 
 #ifdef UNICODE
 #define joyGetDevCaps joyGetDevCapsW

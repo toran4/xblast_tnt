@@ -1903,7 +1903,7 @@ StunOtherPlayers (int team, int time)
 
 	for (player = 0; player < numPlayer; player++) {
 		if ((player_stat[player].team != team)
-			&& (!player_stat[player].invincible > 0)) {
+			&& !(player_stat[player].invincible > 0)) {
 			SND_Play (SND_STUN, player_stat[player].x / (PIXW / MAX_SOUND_POSITION));
 			player_stat[player].stunned = time;
 			count++;

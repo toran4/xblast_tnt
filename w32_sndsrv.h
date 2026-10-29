@@ -44,7 +44,7 @@
  * global prototypes
  */
 extern XBBool SoundCheckWaveOut (XBBool stereo);
-extern DWORD PASCAL _export SoundThreadStereo (void *);
+extern DWORD WINAPI SoundThreadStereo (void *);
 extern char *SoundLoadFile (SND_Id id);
 
 #endif

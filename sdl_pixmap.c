@@ -76,17 +76,14 @@ InitPixmap (void)
 		fprintf (stderr, "Error: file not found.\n");
 		return XBFalse;
 	}
-	clearPix = SDL_DisplayFormat (temp);
-	SDL_FreeSurface (temp);
+	clearPix = SDL_ConvertSurface (temp, screen->format);
+	SDL_DestroySurface (temp);
 	if (clearPix == NULL) {
 		fprintf (stderr, "ReadCchPixmap Failed in InitPixmap\n");
 		return XBFalse;
 	};
 
-	screen_copy = SDL_CreateRGBSurface (screen->flags, screen->w, screen->h,
-										screen->format->BitsPerPixel, screen->format->Rmask,
-										screen->format->Gmask, screen->format->Bmask,
-										screen->format->Amask);
+	screen_copy = SDL_CreateSurface (screen->w, screen->h, screen->format);
 	if (screen_copy == NULL) {
 		fprintf (stderr, "Error: failed to init screen_copy. Reason: %s\n", SDL_GetError ());
 		return XBFalse;
@@ -103,21 +100,15 @@ void
 GUI_ClearPixmap (void)
 {
 
-	int x;
-	int y;
-
 	SDL_Rect DstRect;
-	DstRect.x = 0;
-	DstRect.y = 0;
+
 	DstRect.w = PIXW;
-	for (DstRect.x = 0; DstRect.x < PIXW; x += CLEAR_WIDTH) {
-		for (DstRect.y = 0; DstRect.y < PIXH + SCOREH; y += CLEAR_HEIGHT) {
+	for (DstRect.x = 0; DstRect.x < PIXW; DstRect.x += clearPix->w) {
+		for (DstRect.y = 0; DstRect.y < PIXH + SCOREH; DstRect.y += clearPix->h) {
 			SDL_BlitSurface (clearPix, NULL, screen, &DstRect);
-			DstRect.y += clearPix->h;
 		}
-		DstRect.x += clearPix->w;
 	}
-	SDL_Flip (screen);
+	GUI_PresentScreen ();
 
 }								/* GUI_ClearPixmap */
 
@@ -243,7 +234,84 @@ GUI_AddTilesRectangle (int x, int y)
 void
 GUI_FlushPixmap (XBBool flag)
 {
-	SDL_Flip (screen);
+	SDL_Surface *winSurface;
+	int n;
+
+	if (!flag) {
+		GUI_PresentScreen ();
+		return;
+	}
+
+	n = xrecMax - xrec;
+	winSurface = (NULL != sdlWindow) ? SDL_GetWindowSurface (sdlWindow) : NULL;
+	if (NULL == winSurface || NULL == screen || n <= 0) {
+		GUI_PresentScreen ();
+	}
+	else {
+		SDL_Rect dst;
+		SDL_Rect rects[n];
+		int i, k;
+
+		GUI_GetScreenDestination (winSurface, &dst);
+		if (dst.w <= 0 || dst.h <= 0) {
+			GUI_PresentScreen ();
+		}
+		else {
+			k = 0;
+			for (i = 0; i < n; i++) {
+				SDL_Rect src = xrec[i];
+				SDL_Rect part;
+
+				if (src.x < 0) {
+					src.w += src.x;
+					src.x = 0;
+				}
+				if (src.y < 0) {
+					src.h += src.y;
+					src.y = 0;
+				}
+				if (src.x + src.w > screen->w) {
+					src.w = screen->w - src.x;
+				}
+				if (src.y + src.h > screen->h) {
+					src.h = screen->h - src.y;
+				}
+				if (src.w <= 0 || src.h <= 0) {
+					continue;
+				}
+				part.x = dst.x + src.x * dst.w / screen->w;
+				part.y = dst.y + src.y * dst.h / screen->h;
+				part.w = ((src.x + src.w) * dst.w + screen->w - 1) / screen->w
+					- src.x * dst.w / screen->w;
+				part.h = ((src.y + src.h) * dst.h + screen->h - 1) / screen->h
+					- src.y * dst.h / screen->h;
+				if (part.w < 1) {
+					part.w = 1;
+				}
+				if (part.h < 1) {
+					part.h = 1;
+				}
+				if (part.x + part.w > dst.x + dst.w) {
+					part.w = dst.x + dst.w - part.x;
+				}
+				if (part.y + part.h > dst.y + dst.h) {
+					part.h = dst.y + dst.h - part.y;
+				}
+				rects[k] = part;
+				SDL_BlitSurfaceScaled (screen, &src, winSurface, &part, SDL_SCALEMODE_NEAREST);
+				k++;
+			}
+			if (k > 0) {
+				if (!SDL_UpdateWindowSurfaceRects (sdlWindow, rects, k)) {
+					static XBBool warned = XBFalse;
+					if (!warned) {
+						fprintf (stderr, "sdl_pixmap: SDL_UpdateWindowSurfaceRects failed: %s\n", SDL_GetError ());
+						warned = XBTrue;
+					}
+				}
+			}
+		}
+	}
 
 	if (flag) {
 		counter = 0;
@@ -271,10 +339,10 @@ GUI_InitFade (XBFadeMode mode, int maxLines)
 	fadeMode = mode;
 	switch (mode) {
 	case XBFM_BLACK_OUT:
-		fadeColor = SDL_MapRGB (screen->format, 0, 0, 0);
+		fadeColor = SDL_MapSurfaceRGB (screen, 0, 0, 0);
 		break;
 	case XBFM_WHITE_OUT:
-		fadeColor = SDL_MapRGB (screen->format, 0xFF, 0xFF, 0xFF);
+		fadeColor = SDL_MapSurfaceRGB (screen, 0xFF, 0xFF, 0xFF);
 		break;
 	case XBFM_IN:				// just to keep compiler happy
 		break;
@@ -297,8 +365,8 @@ GUI_DoFade (void)
 
 	if (fadeStep <= 0) {
 		if (fadeMode != XBFM_IN)
-			SDL_FillRect (screen, NULL, fadeColor);
-		SDL_Flip (screen);
+			SDL_FillSurfaceRect (screen, NULL, fadeColor);
+		GUI_PresentScreen ();
 		SDL_Delay (200);
 		if (fadeMode != XBFM_IN)
 			SDL_BlitSurface (screen_copy, NULL, screen, NULL);
@@ -311,13 +379,13 @@ GUI_DoFade (void)
 	for (y = 0; y < screen->h; y += FADE_STEP) {
 		r.y = y;
 		if (fadeMode == XBFM_IN)
-			SDL_UpdateRect (screen, r.x, r.y, r.w, r.h);
+			GUI_PresentScreenRect (&r);
 		else					// fade out
-			SDL_FillRect (screen, &r, fadeColor);
+			SDL_FillSurfaceRect (screen, &r, fadeColor);
 	}
 
 	if (fadeMode != XBFM_IN)
-		SDL_Flip (screen);
+		GUI_PresentScreen ();
 
 	/* preparing next fade. */
 	fadeStep -= 2;
@@ -325,6 +393,22 @@ GUI_DoFade (void)
 	/* thats all */
 	return XBTrue;
 }								/* GUI_FadeOut */
+
+/*
+ * release all pixmap resources
+ */
+void
+FinishPixmap (void)
+{
+	if (NULL != clearPix) {
+		SDL_DestroySurface (clearPix);
+		clearPix = NULL;
+	}
+	if (NULL != screen_copy) {
+		SDL_DestroySurface (screen_copy);
+		screen_copy = NULL;
+	}
+}								/* FinishPixmap */
 
 /*
  * end of file x11c_pixmap.c

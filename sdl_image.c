@@ -120,22 +120,25 @@ BitmapFromRGBPixel (unsigned char *data, int width, int height)
 	SDL_Surface *temp;
 	SDL_Surface *bitmap;
 	unsigned char *pixels;
-	int i;
+	int row;
 
 	// Create new empty surface with correct dimensions
-	temp = SDL_CreateRGBSurface (screen->flags, width, height, 24, RMASK, GMASK, BMASK, 0);
+	temp = SDL_CreateSurface (width, height, PPM_PIXELFORMAT);
+	if (NULL == temp) {
+		return NULL;
+	}
 
-	// Copy all pixels from data to surface.
+	// Copy all pixels from data to surface, row by row (pitch may be padded).
 	SDL_LockSurface (temp);
 	pixels = (unsigned char *)temp->pixels;
 
-	for (i = 0; i < (3 * width * height); i++) {
-		*(pixels + i) = *(data + i);
+	for (row = 0; row < height; row++) {
+		memcpy (pixels + row * temp->pitch, data + row * 3 * width, 3 * width);
 	};
 	SDL_UnlockSurface (temp);
 
-	bitmap = SDL_DisplayFormat (temp);
-	SDL_FreeSurface (temp);
+	bitmap = SDL_ConvertSurface (temp, screen->format);
+	SDL_DestroySurface (temp);
 	return bitmap;
 
 }								/* BitmapFromRGBPixel */
@@ -162,10 +165,10 @@ ReadPbmBitmap (const char *path, const char *filename)
 		return NULL;
 	};
 
-	bitmap = SDL_DisplayFormat (temp);
+	bitmap = SDL_ConvertSurface (temp, screen->format);
 	free (tempAbsFilename);
 	free (absFilename);
-	SDL_FreeSurface (temp);
+	SDL_DestroySurface (temp);
 	return bitmap;
 
 }								/* ReadPbmBitmap */
@@ -193,11 +196,11 @@ ReadRgbPixmap (const char *path, const char *filename)
 		return NULL;
 	};
 
-	bitmap = SDL_DisplayFormat (temp);
+	bitmap = SDL_ConvertSurface (temp, screen->format);
 	assert (bitmap);
 	free (tempAbsFilename);
 	free (absFilename);
-	SDL_FreeSurface (temp);
+	SDL_DestroySurface (temp);
 	return bitmap;
 
 }								/* ReadRgbPixmap */
@@ -280,6 +283,12 @@ ReadEpmPixmap (const char *path, const char *filename, int n_colors, const XBCol
 	/* convert color */
 	EpmToPpm (epm, ppm, width, height, n_colors, color);
 	bitmap = BitmapFromRGBPixel (ppm, width, height);
+	if (NULL == bitmap) {
+		fprintf (stderr, "Could not create bitmap (%s)\n", SDL_GetError ());
+		free (epm);
+		free (ppm);
+		return NULL;
+	}
 
 	tempAbsFilename = CatPathAndFilename (path, filename);
 	absFilename = AddExtension (tempAbsFilename, "pbm");
@@ -287,22 +296,17 @@ ReadEpmPixmap (const char *path, const char *filename, int n_colors, const XBCol
 	mask = IMG_Load (absFilename);
 	/* Some epm files dont have a companion mask file */
 	if (NULL != mask) {
-		SDL_SetColorKey (mask, SDL_SRCCOLORKEY, 1);
+		SDL_SetSurfaceColorKey (mask, true, 1);
 		SDL_BlitSurface (mask, NULL, bitmap, NULL);
 	}
-	SDL_SetColorKey (bitmap, SDL_SRCCOLORKEY, SDL_MapRGB (bitmap->format, 0xFF, 0xFF, 0xFF));
+	SDL_SetSurfaceColorKey (bitmap, true, SDL_MapSurfaceRGB (bitmap, 0xFF, 0xFF, 0xFF));
 	free (tempAbsFilename);
 	free (absFilename);
 	free (epm);
 	free (ppm);
 	if (NULL != mask) {
-		SDL_FreeSurface (mask);
+		SDL_DestroySurface (mask);
 	}
-
-	if (!bitmap) {
-		fprintf (stderr, "Could not create bitmap (%s)\n", SDL_GetError ());
-		return NULL;
-	};
 
 	return bitmap;
 }								/* ReadEpmPixmap */

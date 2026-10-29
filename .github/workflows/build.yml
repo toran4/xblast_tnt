@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build (${{ matrix.config.name }})
+    runs-on: ubuntu-latest
+    container: opensuse/tumbleweed
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: SDL3
+            configure_args: --enable-sdl
+          - name: X11
+            configure_args: --enable-sound
+    steps:
+      - name: Install build dependencies
+        run: |
+          zypper --non-interactive refresh
+          zypper --non-interactive install \
+            git nodejs24 autoconf automake gcc make pkg-config \
+            gettext-tools \
+            libX11-devel \
+            SDL3-devel SDL3_image-devel SDL3_ttf-devel SDL3_mixer-devel
+
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Generate autotools files
+        run: ./autogen.sh
+
+      - name: Configure
+        run: |
+          CFLAGS="-O2 -fcommon" ./configure ${{ matrix.config.configure_args }}
+
+      - name: Compile
+        run: make -j"$(nproc)"
+
+  build-windows:
+    name: Build (Windows, MinGW)
+    runs-on: ubuntu-latest
+    container: opensuse/tumbleweed
+    steps:
+      - name: Install build dependencies
+        run: |
+          zypper --non-interactive refresh
+          zypper --non-interactive install \
+            git nodejs24 make \
+            mingw32-cross-gcc mingw32-cross-binutils mingw32-headers
+
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Compile
+        run: |
+          make -f Makefile.windows clean || true
+          CC=i686-w64-mingw32-gcc WINDRES=i686-w64-mingw32-windres make -f Makefile.windows

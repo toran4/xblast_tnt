@@ -21,16 +21,17 @@
 
 # cygwin options for exe independent of cygwin1.dll
 # comment out or remove for dependent exe
-CYGWINOPT=-mno-cygwin
+CYGWINOPT=
 CYGWINLIB=-lmingw32
 
 DEBUGFLAGS=#-DDEBUG_CHAT -DDEBUG_SERVER -DDEBUG_CLIENT -DDEBUG_NETWORK -DDEBUG_VERSION
 GCCWARN=-Wall -Wno-comment
-GCCOPTS=-O2 $(CYGWINOPT) #-std=c99 -pedantic
+GCCOPTS=-O2 -fcommon $(CYGWINOPT) #-std=c99 -pedantic
 XBLAST=-DW32 -DDEBUG_NAT -DXBLAST_SOUND -DMINI_XBLAST #-DREQUESTS
 XBLASTDIRS=-DXBLASTDIR=\".\" -DGAME_DATADIR=\".\"
 
-CC=gcc.exe #/lib/gcc-lib/i686-pc-mingw32/3.2/cc1.exe
+CC ?= gcc.exe #/lib/gcc-lib/i686-pc-mingw32/3.2/cc1.exe
+WINDRES ?= windres
 CFLAGS=$(GCCOPTS) $(GCCWARN) $(XBLASTDIRS) $(XBLAST) $(DEBUGFLAGS)
 
 LOADLIBES=-lwinmm -luser32 -lgdi32 -lwsock32 -lws2_32 $(CYGWINLIB)
@@ -59,7 +60,7 @@ OBJS_W32= xblast.o util.o str_util.o intro.o introdat.o map.o sprite.o \
 xblast:	$(OBJS_W32) xblast.coff
 
 xblast.coff: xblast.rc
-	windres -i xblast.rc -o xblast.coff
+	$(WINDRES) -i xblast.rc -o xblast.coff
 
 clean:
 	rm -f $(OBJS_W32)
